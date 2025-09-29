@@ -32,7 +32,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-      <div className="flex h-16 items-center px-4 lg:px-6">
+      <div className="flex h-16 items-center px-4 lg:px-6 justify-between">
         {/* Mobile menu button */}
         <div className="mr-4 flex lg:hidden">
           <MobileSidebar />
@@ -86,7 +86,7 @@ export function Header() {
                 className="flex items-center space-x-3 px-3 py-2"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={admin?.avatarUrl} alt={admin?.name} />
+                  <AvatarImage src="" alt={admin?.name} />
                   <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
                     {admin?.name?.charAt(0).toUpperCase() || "A"}
                   </AvatarFallback>

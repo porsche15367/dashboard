@@ -94,10 +94,22 @@ export default function BlockedUsersPage() {
     }
   };
 
+  const handleViewUser = (user: User) => {
+    // TODO: Implement view user modal
+    console.log("View user:", user);
+    alert(`View user: ${user.name} (${user.email})`);
+  };
+
+  const handleEditUser = (user: User) => {
+    // TODO: Implement edit user modal
+    console.log("Edit user:", user);
+    alert(`Edit user: ${user.name} (${user.email})`);
+  };
+
   const handleDelete = async (userId: string) => {
     try {
       setActionLoading(userId);
-      await userService.delete(userId);
+      await userService.block(userId, "Permanently blocked by admin");
       refetch();
     } catch (error) {
       console.error("Failed to delete user:", error);
@@ -233,8 +245,8 @@ export default function BlockedUsersPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {user.lastLoginAt
-                          ? new Date(user.lastLoginAt).toLocaleDateString()
+                        {user.lastLogin
+                          ? new Date(user.lastLogin).toLocaleDateString()
                           : "Never"}
                       </div>
                     </TableCell>
@@ -247,11 +259,15 @@ export default function BlockedUsersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleViewUser(user)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEditUser(user)}
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>

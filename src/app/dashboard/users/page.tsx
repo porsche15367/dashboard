@@ -40,6 +40,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -56,11 +67,19 @@ import {
 } from "lucide-react";
 import { userService } from "@/lib/api-services";
 import { User } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [suspendForm, setSuspendForm] = useState({
+    duration: "7",
+    reason: "",
+  });
+  const { toast } = useToast();
 
   const {
     data: usersData,
@@ -82,20 +101,46 @@ export default function UsersPage() {
       (user.phone && user.phone.includes(searchTerm))
   );
 
-  const handleSuspend = async (
-    userId: string,
-    reason: string,
-    until?: string
-  ) => {
+  const handleSuspend = async () => {
+    if (!selectedUser) return;
+
     try {
-      setActionLoading(userId);
-      await userService.suspend(userId, reason, until);
+      setActionLoading(selectedUser.id);
+      await userService.suspend(
+        selectedUser.id,
+        suspendForm.reason,
+        suspendForm.duration
+      );
+      setSuspendDialogOpen(false);
+      setSuspendForm({ duration: "7", reason: "" });
       refetch();
-    } catch (error) {
+      toast({
+        variant: "success",
+        title: "Success",
+        description: `User ${selectedUser.name} has been suspended for ${suspendForm.duration} days.`,
+      });
+    } catch (error: unknown) {
       console.error("Failed to suspend user:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error && 
+        error.response && typeof error.response === 'object' && 'data' in error.response &&
+        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
+        ? (error.response.data as { message: string }).message
+        : "Failed to suspend user";
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const openSuspendDialog = (user: User) => {
+    setSelectedUser(user);
+    setSuspendForm({ duration: "7", reason: "" });
+    setSuspendDialogOpen(true);
   };
 
   const handleUnsuspend = async (userId: string) => {
@@ -103,8 +148,24 @@ export default function UsersPage() {
       setActionLoading(userId);
       await userService.unsuspend(userId);
       refetch();
-    } catch (error) {
+      toast({
+        variant: "success",
+        title: "Success",
+        description: "User has been unsuspended successfully.",
+      });
+    } catch (error: unknown) {
       console.error("Failed to unsuspend user:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error && 
+        error.response && typeof error.response === 'object' && 'data' in error.response &&
+        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
+        ? (error.response.data as { message: string }).message
+        : "Failed to unsuspend user";
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
     } finally {
       setActionLoading(null);
     }
@@ -115,8 +176,24 @@ export default function UsersPage() {
       setActionLoading(userId);
       await userService.block(userId, reason);
       refetch();
-    } catch (error) {
+      toast({
+        variant: "success",
+        title: "Success",
+        description: "User has been blocked successfully.",
+      });
+    } catch (error: unknown) {
       console.error("Failed to block user:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error && 
+        error.response && typeof error.response === 'object' && 'data' in error.response &&
+        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
+        ? (error.response.data as { message: string }).message
+        : "Failed to block user";
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
     } finally {
       setActionLoading(null);
     }
@@ -127,11 +204,39 @@ export default function UsersPage() {
       setActionLoading(userId);
       await userService.unblock(userId);
       refetch();
-    } catch (error) {
+      toast({
+        variant: "success",
+        title: "Success",
+        description: "User has been unblocked successfully.",
+      });
+    } catch (error: unknown) {
       console.error("Failed to unblock user:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error && 
+        error.response && typeof error.response === 'object' && 'data' in error.response &&
+        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
+        ? (error.response.data as { message: string }).message
+        : "Failed to unblock user";
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleViewUser = (user: User) => {
+    // TODO: Implement view user modal
+    console.log("View user:", user);
+    alert(`View user: ${user.name} (${user.email})`);
+  };
+
+  const handleEditUser = (user: User) => {
+    // TODO: Implement edit user modal
+    console.log("Edit user:", user);
+    alert(`Edit user: ${user.name} (${user.email})`);
   };
 
   if (error) {
@@ -315,11 +420,15 @@ export default function UsersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleViewUser(user)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEditUser(user)}
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
@@ -334,9 +443,7 @@ export default function UsersPage() {
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleSuspend(user.id, "Admin action")
-                              }
+                              onClick={() => openSuspendDialog(user)}
                               disabled={actionLoading === user.id}
                             >
                               <UserX className="mr-2 h-4 w-4" />
@@ -403,6 +510,63 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Suspend User Dialog */}
+      <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend User</DialogTitle>
+            <DialogDescription>
+              Suspend {selectedUser?.name} for a specified duration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration (days)</Label>
+              <Input
+                id="duration"
+                type="number"
+                min="1"
+                value={suspendForm.duration}
+                onChange={(e) =>
+                  setSuspendForm({ ...suspendForm, duration: e.target.value })
+                }
+                placeholder="Enter duration in days"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reason">Reason</Label>
+              <Textarea
+                id="reason"
+                value={suspendForm.reason}
+                onChange={(e) =>
+                  setSuspendForm({ ...suspendForm, reason: e.target.value })
+                }
+                placeholder="Enter reason for suspension"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setSuspendDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSuspend}
+              disabled={
+                actionLoading === selectedUser?.id || !suspendForm.reason.trim()
+              }
+            >
+              {actionLoading === selectedUser?.id
+                ? "Suspending..."
+                : "Suspend User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

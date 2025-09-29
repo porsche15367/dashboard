@@ -42,8 +42,8 @@ export const userService = {
   create: (data: CreateUserRequest) => api.post<User>("/users", data),
   update: (id: string, data: UpdateUserRequest) =>
     api.patch<User>(`/users/${id}`, data),
-  suspend: (id: string, reason: string, until?: string) =>
-    api.put(`/users/admin/${id}/suspend`, { reason, until }),
+  suspend: (id: string, reason: string, duration?: string) =>
+    api.put(`/users/admin/${id}/suspend`, { reason, duration }),
   unsuspend: (id: string) => api.put(`/users/admin/${id}/unsuspend`),
   block: (id: string, reason: string) =>
     api.put(`/users/admin/${id}/block`, { reason }),
@@ -89,29 +89,28 @@ export const productService = {
       ...(category && { categoryId: category }),
       ...(vendor && { vendorId: vendor }),
     });
-    return api
-      .get<PaginatedResponse<Product>>(`/products?${params}`)
-      .then((response) => {
-        // Transform backend response to match PaginatedResponse interface
-        const backendData = response.data;
-        const totalPages = Math.ceil(backendData.total / limit);
+    return api.get(`/products?${params}`).then((response) => {
+      const backendData = response.data;
+      const totalPages = Math.ceil(backendData.total / limit);
 
-        return {
-          ...response,
-          data: {
-            data: backendData.products,
-            pagination: {
-              page,
-              limit: backendData.limit || limit,
-              total: backendData.total,
-              totalPages,
-            },
-          },
-        };
-      });
+      const transformedData = {
+        data: backendData.products || [],
+        pagination: {
+          page,
+          limit: backendData.limit || limit,
+          total: backendData.total || 0,
+          totalPages,
+        },
+      };
+
+      return {
+        ...response,
+        data: transformedData,
+      };
+    });
   },
   getById: (id: string) => api.get<Product>(`/products/${id}`),
-  update: (id: string, data: any) =>
+  update: (id: string, data: Partial<Product>) =>
     api.patch<Product>(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
   toggleStatus: (id: string) => api.put(`/products/${id}/toggle`),

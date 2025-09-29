@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
@@ -40,6 +42,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -54,11 +63,22 @@ import {
 } from "lucide-react";
 import { vendorService } from "@/lib/api-services";
 import { Vendor } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function VendorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    businessName: "",
+    businessDescription: "",
+    address: "",
+    taxId: "",
+  });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const {
     data: vendors,
@@ -82,9 +102,18 @@ export default function VendorsPage() {
     try {
       setActionLoading(vendorId);
       await vendorService.approve(vendorId);
+      toast({
+        title: "Success",
+        description: "Vendor approved successfully",
+      });
       refetch();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to approve vendor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve vendor. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -94,9 +123,18 @@ export default function VendorsPage() {
     try {
       setActionLoading(vendorId);
       await vendorService.reject(vendorId);
+      toast({
+        title: "Success",
+        description: "Vendor rejected successfully",
+      });
       refetch();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to reject vendor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject vendor. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -106,9 +144,59 @@ export default function VendorsPage() {
     try {
       setActionLoading(vendorId);
       await vendorService.delete(vendorId);
+      toast({
+        title: "Success",
+        description: "Vendor deleted successfully",
+      });
       refetch();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to delete vendor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete vendor. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleViewVendor = (vendor: Vendor) => {
+    setSelectedVendor(vendor);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditVendor = (vendor: Vendor) => {
+    setSelectedVendor(vendor);
+    setEditFormData({
+      name: vendor.name,
+      businessName: vendor.businessName,
+      businessDescription: vendor.businessDescription || "",
+      address: vendor.address || "",
+      taxId: vendor.taxId || "",
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedVendor) return;
+
+    try {
+      setActionLoading(selectedVendor.id);
+      await vendorService.update(selectedVendor.id, editFormData);
+      toast({
+        title: "Success",
+        description: "Vendor updated successfully",
+      });
+      setIsEditModalOpen(false);
+      refetch();
+    } catch (error: unknown) {
+      console.error("Failed to update vendor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update vendor. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -288,11 +376,15 @@ export default function VendorsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleViewVendor(vendor)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEditVendor(vendor)}
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
@@ -355,6 +447,289 @@ export default function VendorsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Vendor View Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Vendor Details</DialogTitle>
+            <DialogDescription>
+              View detailed information about this vendor
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedVendor && (
+            <div className="space-y-6">
+              {/* Vendor Avatar and Basic Info */}
+              <div className="flex items-start space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={selectedVendor.avatarUrl} />
+                  <AvatarFallback className="text-lg">
+                    {selectedVendor.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold">{selectedVendor.name}</h3>
+                  <p className="text-lg text-muted-foreground">
+                    {selectedVendor.businessName}
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <Badge
+                      variant={
+                        selectedVendor.isApproved ? "default" : "secondary"
+                      }
+                    >
+                      {selectedVendor.isApproved
+                        ? "Approved"
+                        : "Pending Approval"}
+                    </Badge>
+                    <Badge
+                      variant={
+                        selectedVendor.isVerified ? "default" : "outline"
+                      }
+                    >
+                      {selectedVendor.isVerified ? "Verified" : "Unverified"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Contact Information
+                  </h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Email:</span>
+                      <p className="text-muted-foreground">
+                        {selectedVendor.email}
+                      </p>
+                    </div>
+                    {selectedVendor.phone && (
+                      <div>
+                        <span className="font-medium">Phone:</span>
+                        <p className="text-muted-foreground">
+                          {selectedVendor.phone}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Business Details
+                  </h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Business Name:</span>
+                      <p className="text-muted-foreground">
+                        {selectedVendor.businessName}
+                      </p>
+                    </div>
+                    {selectedVendor.businessDescription && (
+                      <div>
+                        <span className="font-medium">Description:</span>
+                        <p className="text-muted-foreground">
+                          {selectedVendor.businessDescription}
+                        </p>
+                      </div>
+                    )}
+                    {selectedVendor.address && (
+                      <div>
+                        <span className="font-medium">Address:</span>
+                        <p className="text-muted-foreground">
+                          {selectedVendor.address}
+                        </p>
+                      </div>
+                    )}
+                    {selectedVendor.taxId && (
+                      <div>
+                        <span className="font-medium">Tax ID:</span>
+                        <p className="text-muted-foreground">
+                          {selectedVendor.taxId}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Metrics */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">
+                  Performance Metrics
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {selectedVendor.rating.toFixed(1)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Rating</div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {selectedVendor.totalSales}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Total Sales
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {selectedVendor.vendorCategory?.name || "N/A"}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Category
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timestamps */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">
+                  Account Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium">Joined:</span>
+                    <p className="text-muted-foreground">
+                      {new Date(selectedVendor.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Last Updated:</span>
+                    <p className="text-muted-foreground">
+                      {new Date(selectedVendor.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
+                  {selectedVendor.lastLogin && (
+                    <div>
+                      <span className="font-medium">Last Login:</span>
+                      <p className="text-muted-foreground">
+                        {new Date(selectedVendor.lastLogin).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Vendor Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Vendor</DialogTitle>
+            <DialogDescription>Update the vendor information</DialogDescription>
+          </DialogHeader>
+
+          {selectedVendor && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Vendor Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editFormData.name}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter vendor name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-business">Business Name</Label>
+                  <Input
+                    id="edit-business"
+                    value={editFormData.businessName}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        businessName: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter business name"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Business Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editFormData.businessDescription}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({
+                      ...prev,
+                      businessDescription: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter business description"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-address">Address</Label>
+                  <Input
+                    id="edit-address"
+                    value={editFormData.address}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter business address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-tax">Tax ID</Label>
+                  <Input
+                    id="edit-tax"
+                    value={editFormData.taxId}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        taxId: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter tax ID"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditModalOpen(false)}
+                  disabled={actionLoading === selectedVendor.id}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEdit}
+                  disabled={actionLoading === selectedVendor.id}
+                >
+                  {actionLoading === selectedVendor.id
+                    ? "Saving..."
+                    : "Save Changes"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

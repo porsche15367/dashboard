@@ -79,29 +79,59 @@ export default function LoginPage() {
         console.log("Login successful, redirecting...");
         // Use replace to avoid back button issues
         router.replace("/dashboard");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Login error:", err);
+        const errorMessage =
+          err && typeof err === "object" && "message" in err
+            ? (err as { message: string }).message
+            : "Unknown error";
+        const errorResponse =
+          err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response
+            ? err.response.data
+            : undefined;
+        const errorStatus =
+          err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "status" in err.response
+            ? (err.response as { status: number }).status
+            : undefined;
+
         console.error("Error details:", {
-          message: err.message,
-          status: err.response?.status,
-          data: err.response?.data,
-          config: err.config,
+          message: errorMessage,
+          status: errorStatus,
+          data: errorResponse,
         });
 
-        console.log("Error response data:", err.response?.data);
+        console.log("Error response data:", errorResponse);
         console.log(
           "Error response data message:",
-          err.response?.data?.message
+          errorResponse &&
+            typeof errorResponse === "object" &&
+            "message" in errorResponse
+            ? (errorResponse as { message: string }).message
+            : undefined
         );
-        console.log("Error message:", err.message);
+        console.log("Error message:", errorMessage);
 
-        const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
+        const finalErrorMessage =
+          (errorResponse &&
+          typeof errorResponse === "object" &&
+          "message" in errorResponse
+            ? (errorResponse as { message: string }).message
+            : undefined) ||
+          errorMessage ||
           "Login failed. Please check your credentials and try again.";
-        console.log("Final error message:", errorMessage);
-        setError(errorMessage);
-        console.log("Error state should be set to:", errorMessage);
+        console.log("Final error message:", finalErrorMessage);
+        setError(finalErrorMessage);
+        console.log("Error state should be set to:", finalErrorMessage);
       } finally {
         console.log("Setting loading to false");
         setIsLoading(false);

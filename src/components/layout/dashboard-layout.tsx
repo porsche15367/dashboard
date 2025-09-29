@@ -48,9 +48,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex lg:w-64 lg:flex-col">
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* Desktop Sidebar - Sticky */}
+        <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:sticky lg:top-16 lg:h-full">
           <div className="flex flex-grow flex-col overflow-y-auto border-r bg-white shadow-sm">
             <Sidebar />
           </div>

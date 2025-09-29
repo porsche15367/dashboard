@@ -54,9 +54,21 @@ export default function DashboardPage() {
         console.log("Global sales structure:", response.data.globalSales);
         console.log("Global sales total:", response.data.globalSales?.total);
         setAnalytics(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Analytics error:", err);
-        setError(err.response?.data?.message || "Failed to fetch analytics");
+        const errorMessage =
+          err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data
+            ? (err.response.data as { message: string }).message
+            : "Failed to fetch analytics";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -199,8 +211,8 @@ export default function DashboardPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                  label={({ name, value, total }: any) =>
+                    `${name} ${((value / total) * 100).toFixed(0)}%`
                   }
                   outerRadius={80}
                   fill="#8884d8"

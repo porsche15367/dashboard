@@ -67,6 +67,7 @@ export interface ProductCategory {
   id: string;
   name: string;
   description?: string;
+  icon?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -116,7 +117,13 @@ export interface Order {
   taxAmount: number;
   discountAmount: number;
   finalAmount: number;
-  shippingAddress: any;
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   paymentMethod?: string;
   paymentStatus: PaymentStatus;
   paymentId?: string;
@@ -146,7 +153,11 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  productSnapshot: any;
+  productSnapshot: {
+    name: string;
+    price: number;
+    image?: string;
+  };
   product: Product;
 }
 
@@ -374,11 +385,13 @@ export interface UpdateVendorCategoryRequest {
 export interface CreateProductCategoryRequest {
   name: string;
   description?: string;
+  icon?: string;
   vendorId: string;
 }
 
 export interface UpdateProductCategoryRequest {
   name?: string;
   description?: string;
+  icon?: string;
   isActive?: boolean;
 }
