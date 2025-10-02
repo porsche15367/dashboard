@@ -25,6 +25,7 @@ import {
   Percent,
   FolderOpen,
   TrendingUp,
+  Star,
 } from "lucide-react";
 
 const navigation = [
@@ -62,6 +63,11 @@ const navigation = [
     name: "Products",
     href: "/dashboard/products",
     icon: Package,
+  },
+  {
+    name: "Featured Products",
+    href: "/dashboard/featured-products",
+    icon: Star,
   },
   {
     name: "Orders",

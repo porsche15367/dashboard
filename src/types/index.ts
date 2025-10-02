@@ -89,6 +89,10 @@ export interface Product {
   saleEndDate?: string;
   deliveryTime?: number;
   salesCount: number;
+  isFeatured?: boolean;
+  featuredOrder?: number;
+  featuredBy?: string;
+  featuredAt?: string;
   createdAt: string;
   updatedAt: string;
   vendorId: string;
@@ -103,6 +107,18 @@ export interface Product {
     name: string;
     description?: string;
   };
+}
+
+// Featured Product Types
+export interface FeaturedProduct extends Product {
+  isFeatured: true;
+  featuredOrder: number;
+  featuredBy: string;
+  featuredAt: string;
+}
+
+export interface ReorderProductsRequest {
+  productIds: string[];
 }
 
 // Order Types

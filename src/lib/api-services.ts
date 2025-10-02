@@ -10,6 +10,8 @@ import {
   ProductCategory,
   AdminAnalytics,
   VendorAnalytics,
+  FeaturedProduct,
+  ReorderProductsRequest,
   PaginatedResponse,
   CreateVendorRequest,
   UpdateVendorRequest,
@@ -201,4 +203,25 @@ export const analyticsService = {
     api.get("/admin-analytics/sales-by-vendor-category"),
   getTopVendors: () => api.get("/admin-analytics/top-vendors"),
   getRecentOrders: () => api.get("/admin-analytics/recent-orders"),
+};
+
+// Featured Products Services
+export const featuredProductsService = {
+  getAll: () => api.get<FeaturedProduct[]>("/admin/featured-products"),
+  getAvailable: (searchTerm?: string) => {
+    const params = searchTerm
+      ? `?searchTerm=${encodeURIComponent(searchTerm)}`
+      : "";
+    return api.get<Product[]>(`/admin/featured-products/available${params}`);
+  },
+  addToFeatured: (productId: string) =>
+    api.post<FeaturedProduct>(`/admin/featured-products/${productId}/feature`),
+  removeFromFeatured: (productId: string) =>
+    api.delete(`/admin/featured-products/${productId}/feature`),
+  reorder: (data: ReorderProductsRequest) =>
+    api.put("/admin/featured-products/reorder", data),
+  moveUp: (productId: string) =>
+    api.put(`/admin/featured-products/${productId}/move-up`),
+  moveDown: (productId: string) =>
+    api.put(`/admin/featured-products/${productId}/move-down`),
 };
