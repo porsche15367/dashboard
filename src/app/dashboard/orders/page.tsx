@@ -176,7 +176,7 @@ export default function OrdersPage() {
             Manage orders and track their status
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 ">
           <Button
             variant="outline"
             size="sm"
