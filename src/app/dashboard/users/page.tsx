@@ -121,12 +121,19 @@ export default function UsersPage() {
       });
     } catch (error: unknown) {
       console.error("Failed to suspend user:", error);
-      const errorMessage = error && typeof error === 'object' && 'response' in error && 
-        error.response && typeof error.response === 'object' && 'data' in error.response &&
-        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
-        ? (error.response.data as { message: string }).message
-        : "Failed to suspend user";
-      
+      const errorMessage =
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data
+          ? (error.response.data as { message: string }).message
+          : "Failed to suspend user";
+
       toast({
         variant: "destructive",
         title: "Error",
@@ -155,12 +162,19 @@ export default function UsersPage() {
       });
     } catch (error: unknown) {
       console.error("Failed to unsuspend user:", error);
-      const errorMessage = error && typeof error === 'object' && 'response' in error && 
-        error.response && typeof error.response === 'object' && 'data' in error.response &&
-        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
-        ? (error.response.data as { message: string }).message
-        : "Failed to unsuspend user";
-      
+      const errorMessage =
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data
+          ? (error.response.data as { message: string }).message
+          : "Failed to unsuspend user";
+
       toast({
         variant: "destructive",
         title: "Error",
@@ -183,12 +197,19 @@ export default function UsersPage() {
       });
     } catch (error: unknown) {
       console.error("Failed to block user:", error);
-      const errorMessage = error && typeof error === 'object' && 'response' in error && 
-        error.response && typeof error.response === 'object' && 'data' in error.response &&
-        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
-        ? (error.response.data as { message: string }).message
-        : "Failed to block user";
-      
+      const errorMessage =
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data
+          ? (error.response.data as { message: string }).message
+          : "Failed to block user";
+
       toast({
         variant: "destructive",
         title: "Error",
@@ -211,12 +232,19 @@ export default function UsersPage() {
       });
     } catch (error: unknown) {
       console.error("Failed to unblock user:", error);
-      const errorMessage = error && typeof error === 'object' && 'response' in error && 
-        error.response && typeof error.response === 'object' && 'data' in error.response &&
-        error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
-        ? (error.response.data as { message: string }).message
-        : "Failed to unblock user";
-      
+      const errorMessage =
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data
+          ? (error.response.data as { message: string }).message
+          : "Failed to unblock user";
+
       toast({
         variant: "destructive",
         title: "Error",
@@ -229,13 +257,13 @@ export default function UsersPage() {
 
   const handleViewUser = (user: User) => {
     // TODO: Implement view user modal
-    console.log("View user:", user);
+
     alert(`View user: ${user.name} (${user.email})`);
   };
 
   const handleEditUser = (user: User) => {
     // TODO: Implement edit user modal
-    console.log("Edit user:", user);
+
     alert(`Edit user: ${user.name} (${user.email})`);
   };
 

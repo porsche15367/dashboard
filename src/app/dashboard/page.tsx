@@ -50,9 +50,7 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         const response = await analyticsService.getAdminAnalytics();
-        console.log("Analytics response:", response.data);
-        console.log("Global sales structure:", response.data.globalSales);
-        console.log("Global sales total:", response.data.globalSales?.total);
+
         setAnalytics(response.data);
       } catch (err: unknown) {
         console.error("Analytics error:", err);

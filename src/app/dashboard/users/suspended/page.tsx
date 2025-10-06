@@ -96,13 +96,13 @@ export default function SuspendedUsersPage() {
 
   const handleViewUser = (user: User) => {
     // TODO: Implement view user modal
-    console.log("View user:", user);
+
     alert(`View user: ${user.name} (${user.email})`);
   };
 
   const handleEditUser = (user: User) => {
     // TODO: Implement edit user modal
-    console.log("Edit user:", user);
+
     alert(`Edit user: ${user.name} (${user.email})`);
   };
 

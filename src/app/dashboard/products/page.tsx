@@ -103,10 +103,9 @@ export default function ProductsPage() {
   const handleToggleStatus = async (productId: string) => {
     try {
       setActionLoading(productId);
-      console.log("Attempting to toggle product status:", productId);
-      console.log("Admin token:", localStorage.getItem("admin_token"));
+
       await productService.toggleStatus(productId);
-      console.log("Product status toggled successfully");
+
       toast({
         title: "Success",
         description: "Product status updated successfully",
@@ -127,10 +126,7 @@ export default function ProductsPage() {
   const handleDelete = async (productId: string) => {
     try {
       setActionLoading(productId);
-      console.log("Attempting to delete product:", productId);
-      console.log("Admin token:", localStorage.getItem("admin_token"));
       await productService.delete(productId);
-      console.log("Product deleted successfully");
       toast({
         title: "Success",
         description: "Product deleted successfully",
@@ -232,7 +228,6 @@ export default function ProductsPage() {
         await uploadImages(selectedProduct.id);
       }
 
-      console.log("Product updated successfully");
       toast({
         title: "Success",
         description: "Product updated successfully",

@@ -26,57 +26,37 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    console.log("Login Page - Auth State:", {
-      isAuthenticated,
-      authLoading,
-    });
-
     if (!authLoading && isAuthenticated) {
-      console.log("Already authenticated, redirecting to dashboard");
       // Use replace to avoid back button issues
       router.replace("/dashboard");
     }
   }, [isAuthenticated, authLoading, router]);
 
-  useEffect(() => {
-    console.log("=== LOGIN COMPONENT MOUNTED ===");
-    return () => {
-      console.log("=== LOGIN COMPONENT UNMOUNTED ===");
-    };
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("=== FORM SUBMIT START ===");
     e.preventDefault();
     e.stopPropagation();
-    console.log("Form submitted - preventDefault called");
 
     try {
       if (!email || !password) {
-        console.log("Validation failed: missing fields");
         setError("Please fill in all fields");
         return;
       }
 
       if (password.length < 6) {
-        console.log("Validation failed: password too short");
         setError("Password must be at least 6 characters");
         return;
       }
 
-      console.log("Validation passed, starting login process");
       setIsLoading(true);
       setError("");
 
       try {
-        console.log("Attempting login with:", { email, password });
-
         await login({
           email,
           password,
           type: "admin",
         });
-        console.log("Login successful, redirecting...");
+
         // Use replace to avoid back button issues
         router.replace("/dashboard");
       } catch (err: unknown) {
@@ -110,17 +90,6 @@ export default function LoginPage() {
           data: errorResponse,
         });
 
-        console.log("Error response data:", errorResponse);
-        console.log(
-          "Error response data message:",
-          errorResponse &&
-            typeof errorResponse === "object" &&
-            "message" in errorResponse
-            ? (errorResponse as { message: string }).message
-            : undefined
-        );
-        console.log("Error message:", errorMessage);
-
         const finalErrorMessage =
           (errorResponse &&
           typeof errorResponse === "object" &&
@@ -129,11 +98,9 @@ export default function LoginPage() {
             : undefined) ||
           errorMessage ||
           "Login failed. Please check your credentials and try again.";
-        console.log("Final error message:", finalErrorMessage);
+
         setError(finalErrorMessage);
-        console.log("Error state should be set to:", finalErrorMessage);
       } finally {
-        console.log("Setting loading to false");
         setIsLoading(false);
       }
     } catch (error) {
@@ -141,8 +108,6 @@ export default function LoginPage() {
       setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }
-
-    console.log("=== FORM SUBMIT END ===");
   };
 
   // Show loading while checking authentication
