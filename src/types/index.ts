@@ -57,7 +57,7 @@ export interface VendorCategory {
   id: string;
   name: string;
   description?: string;
-  icon?: string;
+  imageUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -388,13 +388,13 @@ export interface UpdateCouponRequest {
 export interface CreateVendorCategoryRequest {
   name: string;
   description?: string;
-  icon?: string;
+  imageUrl?: string;
 }
 
 export interface UpdateVendorCategoryRequest {
   name?: string;
   description?: string;
-  icon?: string;
+  imageUrl?: string;
   isActive?: boolean;
 }
 

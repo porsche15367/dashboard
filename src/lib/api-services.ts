@@ -169,6 +169,15 @@ export const vendorCategoryService = {
     api.patch<VendorCategory>(`/vendor-categories/${id}`, data),
   delete: (id: string) => api.delete(`/vendor-categories/${id}`),
   toggleStatus: (id: string) => api.put(`/vendor-categories/${id}/toggle`),
+  uploadImage: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return api.post<VendorCategory>(`/vendor-categories/${id}/image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 // Product Category Services

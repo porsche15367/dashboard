@@ -62,6 +62,8 @@ import {
   Plus,
   ToggleLeft,
   ToggleRight,
+  Upload,
+  X,
 } from "lucide-react";
 import { vendorCategoryService } from "@/lib/api-services";
 import {
@@ -84,16 +86,21 @@ export default function VendorCategoriesPage() {
     useState<CreateVendorCategoryRequest>({
       name: "",
       description: "",
-      icon: "",
+      imageUrl: "",
     });
   const [editFormData, setEditFormData] = useState<UpdateVendorCategoryRequest>(
     {
       name: "",
       description: "",
-      icon: "",
+      imageUrl: "",
       isActive: true,
     }
   );
+  const [createImageFile, setCreateImageFile] = useState<File | null>(null);
+  const [createImagePreview, setCreateImagePreview] = useState<string>("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const { toast } = useToast();
 
   const {
@@ -166,9 +173,11 @@ export default function VendorCategoriesPage() {
     setEditFormData({
       name: category.name,
       description: category.description || "",
-      icon: category.icon || "",
+      imageUrl: category.imageUrl || "",
       isActive: category.isActive,
     });
+    setEditImageFile(null);
+    setEditImagePreview(category.imageUrl || "");
     setIsEditModalOpen(true);
   };
 
@@ -176,23 +185,89 @@ export default function VendorCategoriesPage() {
     setCreateFormData({
       name: "",
       description: "",
-      icon: "",
+      imageUrl: "",
     });
+    setCreateImageFile(null);
+    setCreateImagePreview("");
     setIsCreateModalOpen(true);
+  };
+
+  const handleCreateImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCreateImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreateImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearCreateImage = () => {
+    setCreateImageFile(null);
+    setCreateImagePreview("");
+  };
+
+  const clearEditImage = () => {
+    setEditImageFile(null);
+    setEditImagePreview(editFormData.imageUrl || "");
   };
 
   const handleSaveCreate = async () => {
     try {
       setActionLoading("create");
-      await vendorCategoryService.create(createFormData);
-      toast({
-        title: "Success",
-        description: "Category created successfully",
-      });
-      setIsCreateModalOpen(false);
-      refetch();
+      
+      // If an image file is selected, upload it first
+      if (createImageFile) {
+        setUploadingImage(true);
+        // Create category first to get the ID
+        const newCategory = await vendorCategoryService.create({
+          ...createFormData,
+          imageUrl: "", // Will be set after upload
+        });
+        
+        // Upload image
+        const uploaded = await vendorCategoryService.uploadImage(
+          newCategory.data.id,
+          createImageFile
+        );
+        
+        setUploadingImage(false);
+        
+        toast({
+          title: "Success",
+          description: "Category created successfully",
+        });
+        setIsCreateModalOpen(false);
+        setCreateImageFile(null);
+        setCreateImagePreview("");
+        refetch();
+      } else {
+        // No image to upload, just create with URL if provided
+        await vendorCategoryService.create(createFormData);
+        toast({
+          title: "Success",
+          description: "Category created successfully",
+        });
+        setIsCreateModalOpen(false);
+        refetch();
+      }
     } catch (error: unknown) {
       console.error("Failed to create category:", error);
+      setUploadingImage(false);
       toast({
         title: "Error",
         description: "Failed to create category. Please try again.",
@@ -208,15 +283,31 @@ export default function VendorCategoriesPage() {
 
     try {
       setActionLoading(selectedCategory.id);
-      await vendorCategoryService.update(selectedCategory.id, editFormData);
+      
+      // If an image file is selected, upload it
+      if (editImageFile) {
+        setUploadingImage(true);
+        await vendorCategoryService.uploadImage(
+          selectedCategory.id,
+          editImageFile
+        );
+        setUploadingImage(false);
+      } else {
+        // Just update other fields
+        await vendorCategoryService.update(selectedCategory.id, editFormData);
+      }
+      
       toast({
         title: "Success",
         description: "Category updated successfully",
       });
       setIsEditModalOpen(false);
+      setEditImageFile(null);
+      setEditImagePreview("");
       refetch();
     } catch (error: unknown) {
       console.error("Failed to update category:", error);
+      setUploadingImage(false);
       toast({
         title: "Error",
         description: "Failed to update category. Please try again.",
@@ -334,7 +425,7 @@ export default function VendorCategoriesPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>Icon</TableHead>
+                  <TableHead>Image</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -352,10 +443,20 @@ export default function VendorCategoriesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {category.icon ? (
-                        <div className="text-2xl">{category.icon}</div>
+                      {category.imageUrl ? (
+                        <img
+                          src={category.imageUrl}
+                          alt={category.name}
+                          className="h-12 w-12 object-cover rounded-md"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
                       ) : (
-                        <div className="text-muted-foreground">No icon</div>
+                        <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center text-xs text-muted-foreground">
+                          No image
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -490,17 +591,64 @@ export default function VendorCategoriesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-icon">Icon</Label>
+              <Label htmlFor="create-image">Category Image</Label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  id="create-image"
+                  accept="image/*"
+                  onChange={handleCreateImageSelect}
+                  className="hidden"
+                />
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      document.getElementById("create-image")?.click()
+                    }
+                    className="flex items-center space-x-2"
+                    disabled={uploadingImage}
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>{createImageFile ? "Change Image" : "Select Image"}</span>
+                  </Button>
+                  {createImageFile && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearCreateImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {createImagePreview && (
+                  <div className="mt-2">
+                    <img
+                      src={createImagePreview}
+                      alt="Preview"
+                      className="h-32 w-32 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Or enter an image URL manually:
+              </p>
               <Input
-                id="create-icon"
-                value={createFormData.icon}
+                id="create-imageUrl"
+                type="url"
+                value={createFormData.imageUrl}
                 onChange={(e) =>
                   setCreateFormData((prev) => ({
                     ...prev,
-                    icon: e.target.value,
+                    imageUrl: e.target.value,
                   }))
                 }
-                placeholder="Enter icon name or URL"
+                placeholder="https://example.com/image.jpg"
+                disabled={!!createImageFile}
               />
             </div>
           </div>
@@ -515,10 +663,16 @@ export default function VendorCategoriesPage() {
             <Button
               onClick={handleSaveCreate}
               disabled={
-                actionLoading === "create" || !createFormData.name.trim()
+                actionLoading === "create" || 
+                uploadingImage ||
+                !createFormData.name.trim()
               }
             >
-              {actionLoading === "create" ? "Creating..." : "Create Category"}
+              {uploadingImage 
+                ? "Uploading..." 
+                : actionLoading === "create" 
+                ? "Creating..." 
+                : "Create Category"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -561,14 +715,61 @@ export default function VendorCategoriesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-icon">Icon</Label>
+              <Label htmlFor="edit-image">Category Image</Label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  id="edit-image"
+                  accept="image/*"
+                  onChange={handleEditImageSelect}
+                  className="hidden"
+                />
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      document.getElementById("edit-image")?.click()
+                    }
+                    className="flex items-center space-x-2"
+                    disabled={uploadingImage}
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>{editImageFile ? "Change Image" : "Select Image"}</span>
+                  </Button>
+                  {editImageFile && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearEditImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {editImagePreview && (
+                  <div className="mt-2">
+                    <img
+                      src={editImagePreview}
+                      alt="Preview"
+                      className="h-32 w-32 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Or enter an image URL manually:
+              </p>
               <Input
-                id="edit-icon"
-                value={editFormData.icon}
+                id="edit-imageUrl"
+                type="url"
+                value={editFormData.imageUrl}
                 onChange={(e) =>
-                  setEditFormData((prev) => ({ ...prev, icon: e.target.value }))
+                  setEditFormData((prev) => ({ ...prev, imageUrl: e.target.value }))
                 }
-                placeholder="Enter icon name or URL"
+                placeholder="https://example.com/image.jpg"
+                disabled={!!editImageFile}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -599,10 +800,13 @@ export default function VendorCategoriesPage() {
               onClick={handleSaveEdit}
               disabled={
                 actionLoading === selectedCategory?.id ||
+                uploadingImage ||
                 !editFormData.name?.trim()
               }
             >
-              {actionLoading === selectedCategory?.id
+              {uploadingImage
+                ? "Uploading..."
+                : actionLoading === selectedCategory?.id
                 ? "Saving..."
                 : "Save Changes"}
             </Button>
@@ -634,10 +838,21 @@ export default function VendorCategoriesPage() {
                 </p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Icon</Label>
-                <p className="text-sm text-muted-foreground">
-                  {selectedCategory.icon || "No icon"}
-                </p>
+                <Label className="text-sm font-medium">Image</Label>
+                {selectedCategory.imageUrl ? (
+                  <div className="mt-2">
+                    <img
+                      src={selectedCategory.imageUrl}
+                      alt={selectedCategory.name}
+                      className="h-32 w-32 object-cover rounded-md border"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No image</p>
+                )}
               </div>
               <div>
                 <Label className="text-sm font-medium">Status</Label>
