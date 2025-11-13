@@ -23,6 +23,10 @@ import {
   UpdateVendorCategoryRequest,
   CreateProductCategoryRequest,
   UpdateProductCategoryRequest,
+  PopularBanner,
+  CreatePopularBannerRequest,
+  UpdatePopularBannerRequest,
+  ReorderBannersRequest,
 } from "@/types";
 
 // Auth Services
@@ -233,4 +237,26 @@ export const featuredProductsService = {
     api.put(`/admin/featured-products/${productId}/move-up`),
   moveDown: (productId: string) =>
     api.put(`/admin/featured-products/${productId}/move-down`),
+};
+
+// Popular Banners Services
+export const popularBannersService = {
+  getAll: () => api.get<PopularBanner[]>("/popular-banners"),
+  getById: (id: string) => api.get<PopularBanner>(`/popular-banners/${id}`),
+  create: (data: CreatePopularBannerRequest) =>
+    api.post<PopularBanner>("/popular-banners", data),
+  update: (id: string, data: UpdatePopularBannerRequest) =>
+    api.put<PopularBanner>(`/popular-banners/${id}`, data),
+  delete: (id: string) => api.delete(`/popular-banners/${id}`),
+  reorder: (data: ReorderBannersRequest) =>
+    api.put("/popular-banners/reorder", data),
+  uploadImage: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return api.post<PopularBanner>(`/popular-banners/${id}/image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };

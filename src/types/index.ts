@@ -411,3 +411,47 @@ export interface UpdateProductCategoryRequest {
   icon?: string;
   isActive?: boolean;
 }
+
+// Popular Banner Types
+export interface PopularBanner {
+  id: string;
+  imageUrl: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  linkUrl?: string;
+  order: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  admin?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface CreatePopularBannerRequest {
+  imageUrl: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  linkUrl?: string;
+  order?: number;
+  isActive?: boolean;
+}
+
+export interface UpdatePopularBannerRequest {
+  imageUrl?: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  linkUrl?: string;
+  order?: number;
+  isActive?: boolean;
+}
+
+export interface ReorderBannersRequest {
+  bannerIds: string[];
+}

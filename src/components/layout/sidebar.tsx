@@ -26,6 +26,7 @@ import {
   FolderOpen,
   TrendingUp,
   Star,
+  Image as ImageIcon,
 } from "lucide-react";
 
 const navigation = [
@@ -68,6 +69,11 @@ const navigation = [
     name: "Featured Products",
     href: "/dashboard/featured-products",
     icon: Star,
+  },
+  {
+    name: "Popular Banners",
+    href: "/dashboard/popular-banners",
+    icon: ImageIcon,
   },
   {
     name: "Orders",
