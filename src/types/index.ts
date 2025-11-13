@@ -433,7 +433,7 @@ export interface PopularBanner {
 }
 
 export interface CreatePopularBannerRequest {
-  imageUrl: string;
+  imageUrl?: string;
   title?: string;
   subtitle?: string;
   buttonText?: string;
