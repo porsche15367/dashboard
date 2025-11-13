@@ -196,10 +196,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center text-sm text-gray-600">
-          <p>Default admin credentials:</p>
-          <p className="font-mono">admin@marketplace.com / AdminPassword123!</p>
-        </div>
+      
       </div>
     </div>
   );
