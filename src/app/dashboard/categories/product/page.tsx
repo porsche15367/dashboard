@@ -69,6 +69,8 @@ import {
   Plus,
   ToggleLeft,
   ToggleRight,
+  Upload,
+  X,
 } from "lucide-react";
 import { productCategoryService, vendorService } from "@/lib/api-services";
 import {
@@ -102,6 +104,15 @@ export default function ProductCategoriesPage() {
       icon: "",
       isActive: true,
     });
+  const [createImageFile, setCreateImageFile] = useState<File | null>(null);
+  const [createImagePreview, setCreateImagePreview] = useState<string>("");
+  const [createCoverFile, setCreateCoverFile] = useState<File | null>(null);
+  const [createCoverPreview, setCreateCoverPreview] = useState<string>("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+  const [editCoverPreview, setEditCoverPreview] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const { toast } = useToast();
   const { admin } = useClientAuth();
 
@@ -178,6 +189,74 @@ export default function ProductCategoriesPage() {
     setIsViewModalOpen(true);
   };
 
+  const handleCreateImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCreateImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreateImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCreateCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreateCoverPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearCreateImage = () => {
+    setCreateImageFile(null);
+    setCreateImagePreview("");
+  };
+
+  const clearCreateCover = () => {
+    setCreateCoverFile(null);
+    setCreateCoverPreview("");
+  };
+
+  const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditCoverPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearEditImage = () => {
+    setEditImageFile(null);
+    setEditImagePreview(selectedCategory?.imageUrl || "");
+  };
+
+  const clearEditCover = () => {
+    setEditCoverFile(null);
+    setEditCoverPreview(selectedCategory?.coverImageUrl || "");
+  };
+
   const handleEditCategory = (category: ProductCategory) => {
     setSelectedCategory(category);
     setEditFormData({
@@ -186,6 +265,10 @@ export default function ProductCategoriesPage() {
       icon: category.icon || "",
       isActive: category.isActive,
     });
+    setEditImagePreview(category.imageUrl || "");
+    setEditCoverPreview(category.coverImageUrl || "");
+    setEditImageFile(null);
+    setEditCoverFile(null);
     setIsEditModalOpen(true);
   };
 
@@ -196,6 +279,10 @@ export default function ProductCategoriesPage() {
       icon: "",
       vendorId: "",
     });
+    setCreateImageFile(null);
+    setCreateImagePreview("");
+    setCreateCoverFile(null);
+    setCreateCoverPreview("");
     setIsCreateModalOpen(true);
   };
 
@@ -215,15 +302,45 @@ export default function ProductCategoriesPage() {
 
     try {
       setActionLoading("create");
-      await productCategoryService.create(createFormData);
+      setUploadingImage(true);
+      
+      // Create category first to get the ID
+      const newCategory = await productCategoryService.create({
+        ...createFormData,
+        imageUrl: "",
+        coverImageUrl: "",
+      });
+      
+      // Upload image if provided
+      if (createImageFile) {
+        await productCategoryService.uploadImage(
+          newCategory.data.id,
+          createImageFile
+        );
+      }
+      
+      // Upload cover if provided
+      if (createCoverFile) {
+        await productCategoryService.uploadCover(
+          newCategory.data.id,
+          createCoverFile
+        );
+      }
+      
+      setUploadingImage(false);
       toast({
         title: "Success",
         description: "Category created successfully",
       });
       setIsCreateModalOpen(false);
+      setCreateImageFile(null);
+      setCreateImagePreview("");
+      setCreateCoverFile(null);
+      setCreateCoverPreview("");
       refetch();
     } catch (error: unknown) {
       console.error("Failed to create category:", error);
+      setUploadingImage(false);
       toast({
         title: "Error",
         description: "Failed to create category. Please try again.",
@@ -239,15 +356,41 @@ export default function ProductCategoriesPage() {
 
     try {
       setActionLoading(selectedCategory.id);
+      setUploadingImage(true);
+      
+      // Upload image if provided
+      if (editImageFile) {
+        await productCategoryService.uploadImage(
+          selectedCategory.id,
+          editImageFile
+        );
+      }
+      
+      // Upload cover if provided
+      if (editCoverFile) {
+        await productCategoryService.uploadCover(
+          selectedCategory.id,
+          editCoverFile
+        );
+      }
+      
+      // Update other fields
       await productCategoryService.update(selectedCategory.id, editFormData);
+      
+      setUploadingImage(false);
       toast({
         title: "Success",
         description: "Category updated successfully",
       });
       setIsEditModalOpen(false);
+      setEditImageFile(null);
+      setEditImagePreview("");
+      setEditCoverFile(null);
+      setEditCoverPreview("");
       refetch();
     } catch (error: unknown) {
       console.error("Failed to update category:", error);
+      setUploadingImage(false);
       toast({
         title: "Error",
         description: "Failed to update category. Please try again.",
@@ -556,6 +699,92 @@ export default function ProductCategoriesPage() {
                 Enter an icon name (e.g., lucide:smartphone) or leave empty
               </p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-image">Category Image</Label>
+              <input
+                type="file"
+                id="create-image"
+                accept="image/*"
+                onChange={handleCreateImageSelect}
+                className="hidden"
+              />
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    document.getElementById("create-image")?.click()
+                  }
+                  className="flex items-center space-x-2"
+                  disabled={uploadingImage}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>{createImageFile ? "Change Image" : "Select Image"}</span>
+                </Button>
+                {createImageFile && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearCreateImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {createImagePreview && (
+                <div className="mt-2">
+                  <img
+                    src={createImagePreview}
+                    alt="Preview"
+                    className="h-32 w-32 object-cover rounded-md border"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-cover">Category Cover Image</Label>
+              <input
+                type="file"
+                id="create-cover"
+                accept="image/*"
+                onChange={handleCreateCoverSelect}
+                className="hidden"
+              />
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    document.getElementById("create-cover")?.click()
+                  }
+                  className="flex items-center space-x-2"
+                  disabled={uploadingImage}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>{createCoverFile ? "Change Cover" : "Select Cover"}</span>
+                </Button>
+                {createCoverFile && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearCreateCover}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {createCoverPreview && (
+                <div className="mt-2">
+                  <img
+                    src={createCoverPreview}
+                    alt="Cover Preview"
+                    className="h-32 w-32 object-cover rounded-md border"
+                  />
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -569,12 +798,17 @@ export default function ProductCategoriesPage() {
               onClick={handleSaveCreate}
               disabled={
                 actionLoading === "create" ||
+                uploadingImage ||
                 !createFormData.name.trim() ||
                 ((admin?.role === "admin" || admin?.role === "superadmin") &&
                   !createFormData.vendorId)
               }
             >
-              {actionLoading === "create" ? "Creating..." : "Create Category"}
+              {uploadingImage 
+                ? "Uploading..." 
+                : actionLoading === "create" 
+                ? "Creating..." 
+                : "Create Category"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -633,6 +867,92 @@ export default function ProductCategoriesPage() {
                 Enter an icon name (e.g., lucide:smartphone) or leave empty
               </p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-image">Category Image</Label>
+              <input
+                type="file"
+                id="edit-image"
+                accept="image/*"
+                onChange={handleEditImageSelect}
+                className="hidden"
+              />
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    document.getElementById("edit-image")?.click()
+                  }
+                  className="flex items-center space-x-2"
+                  disabled={uploadingImage}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>{editImageFile ? "Change Image" : "Select Image"}</span>
+                </Button>
+                {editImageFile && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearEditImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {editImagePreview && (
+                <div className="mt-2">
+                  <img
+                    src={editImagePreview}
+                    alt="Preview"
+                    className="h-32 w-32 object-cover rounded-md border"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-cover">Category Cover Image</Label>
+              <input
+                type="file"
+                id="edit-cover"
+                accept="image/*"
+                onChange={handleEditCoverSelect}
+                className="hidden"
+              />
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    document.getElementById("edit-cover")?.click()
+                  }
+                  className="flex items-center space-x-2"
+                  disabled={uploadingImage}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>{editCoverFile ? "Change Cover" : "Select Cover"}</span>
+                </Button>
+                {editCoverFile && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearEditCover}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {editCoverPreview && (
+                <div className="mt-2">
+                  <img
+                    src={editCoverPreview}
+                    alt="Cover Preview"
+                    className="h-32 w-32 object-cover rounded-md border"
+                  />
+                </div>
+              )}
+            </div>
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -653,7 +973,7 @@ export default function ProductCategoriesPage() {
             <Button
               variant="outline"
               onClick={() => setIsEditModalOpen(false)}
-              disabled={actionLoading === selectedCategory?.id}
+              disabled={actionLoading === selectedCategory?.id || uploadingImage}
             >
               Cancel
             </Button>
@@ -661,10 +981,13 @@ export default function ProductCategoriesPage() {
               onClick={handleSaveEdit}
               disabled={
                 actionLoading === selectedCategory?.id ||
+                uploadingImage ||
                 !editFormData.name?.trim()
               }
             >
-              {actionLoading === selectedCategory?.id
+              {uploadingImage
+                ? "Uploading..."
+                : actionLoading === selectedCategory?.id
                 ? "Saving..."
                 : "Save Changes"}
             </Button>

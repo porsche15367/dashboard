@@ -87,19 +87,25 @@ export default function VendorCategoriesPage() {
       name: "",
       description: "",
       imageUrl: "",
+      coverImageUrl: "",
     });
   const [editFormData, setEditFormData] = useState<UpdateVendorCategoryRequest>(
     {
       name: "",
       description: "",
       imageUrl: "",
+      coverImageUrl: "",
       isActive: true,
     }
   );
   const [createImageFile, setCreateImageFile] = useState<File | null>(null);
   const [createImagePreview, setCreateImagePreview] = useState<string>("");
+  const [createCoverFile, setCreateCoverFile] = useState<File | null>(null);
+  const [createCoverPreview, setCreateCoverPreview] = useState<string>("");
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+  const [editCoverPreview, setEditCoverPreview] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const { toast } = useToast();
 
@@ -174,10 +180,13 @@ export default function VendorCategoriesPage() {
       name: category.name,
       description: category.description || "",
       imageUrl: category.imageUrl || "",
+      coverImageUrl: category.coverImageUrl || "",
       isActive: category.isActive,
     });
     setEditImageFile(null);
     setEditImagePreview(category.imageUrl || "");
+    setEditCoverFile(null);
+    setEditCoverPreview(category.coverImageUrl || "");
     setIsEditModalOpen(true);
   };
 
@@ -186,9 +195,12 @@ export default function VendorCategoriesPage() {
       name: "",
       description: "",
       imageUrl: "",
+      coverImageUrl: "",
     });
     setCreateImageFile(null);
     setCreateImagePreview("");
+    setCreateCoverFile(null);
+    setCreateCoverPreview("");
     setIsCreateModalOpen(true);
   };
 
@@ -216,9 +228,38 @@ export default function VendorCategoriesPage() {
     }
   };
 
+  const handleCreateCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCreateCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreateCoverPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditCoverPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const clearCreateImage = () => {
     setCreateImageFile(null);
     setCreateImagePreview("");
+  };
+
+  const clearCreateCover = () => {
+    setCreateCoverFile(null);
+    setCreateCoverPreview("");
   };
 
   const clearEditImage = () => {
@@ -226,45 +267,52 @@ export default function VendorCategoriesPage() {
     setEditImagePreview(editFormData.imageUrl || "");
   };
 
+  const clearEditCover = () => {
+    setEditCoverFile(null);
+    setEditCoverPreview(editFormData.coverImageUrl || "");
+  };
+
   const handleSaveCreate = async () => {
     try {
       setActionLoading("create");
       
-      // If an image file is selected, upload it first
+      // Create category first to get the ID
+      const newCategory = await vendorCategoryService.create({
+        ...createFormData,
+        imageUrl: "", // Will be set after upload if file selected
+        coverImageUrl: "", // Will be set after upload if file selected
+      });
+      
+      setUploadingImage(true);
+      
+      // Upload image if file selected
       if (createImageFile) {
-        setUploadingImage(true);
-        // Create category first to get the ID
-        const newCategory = await vendorCategoryService.create({
-          ...createFormData,
-          imageUrl: "", // Will be set after upload
-        });
-        
-        // Upload image
-        const uploaded = await vendorCategoryService.uploadImage(
+        await vendorCategoryService.uploadImage(
           newCategory.data.id,
           createImageFile
         );
-        
-        setUploadingImage(false);
-        
-        toast({
-          title: "Success",
-          description: "Category created successfully",
-        });
-        setIsCreateModalOpen(false);
-        setCreateImageFile(null);
-        setCreateImagePreview("");
-        refetch();
-      } else {
-        // No image to upload, just create with URL if provided
-        await vendorCategoryService.create(createFormData);
-        toast({
-          title: "Success",
-          description: "Category created successfully",
-        });
-        setIsCreateModalOpen(false);
-        refetch();
       }
+      
+      // Upload cover image if file selected
+      if (createCoverFile) {
+        await vendorCategoryService.uploadCoverImage(
+          newCategory.data.id,
+          createCoverFile
+        );
+      }
+      
+      setUploadingImage(false);
+      
+      toast({
+        title: "Success",
+        description: "Category created successfully",
+      });
+      setIsCreateModalOpen(false);
+      setCreateImageFile(null);
+      setCreateImagePreview("");
+      setCreateCoverFile(null);
+      setCreateCoverPreview("");
+      refetch();
     } catch (error: unknown) {
       console.error("Failed to create category:", error);
       setUploadingImage(false);
@@ -283,19 +331,28 @@ export default function VendorCategoriesPage() {
 
     try {
       setActionLoading(selectedCategory.id);
+      setUploadingImage(true);
       
-      // If an image file is selected, upload it
+      // Update other fields first
+      await vendorCategoryService.update(selectedCategory.id, editFormData);
+      
+      // Upload image if file selected
       if (editImageFile) {
-        setUploadingImage(true);
         await vendorCategoryService.uploadImage(
           selectedCategory.id,
           editImageFile
         );
-        setUploadingImage(false);
-      } else {
-        // Just update other fields
-        await vendorCategoryService.update(selectedCategory.id, editFormData);
       }
+      
+      // Upload cover image if file selected
+      if (editCoverFile) {
+        await vendorCategoryService.uploadCoverImage(
+          selectedCategory.id,
+          editCoverFile
+        );
+      }
+      
+      setUploadingImage(false);
       
       toast({
         title: "Success",
@@ -304,6 +361,8 @@ export default function VendorCategoriesPage() {
       setIsEditModalOpen(false);
       setEditImageFile(null);
       setEditImagePreview("");
+      setEditCoverFile(null);
+      setEditCoverPreview("");
       refetch();
     } catch (error: unknown) {
       console.error("Failed to update category:", error);
@@ -651,6 +710,67 @@ export default function VendorCategoriesPage() {
                 disabled={!!createImageFile}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-cover">Category Cover Image</Label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  id="create-cover"
+                  accept="image/*"
+                  onChange={handleCreateCoverSelect}
+                  className="hidden"
+                />
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      document.getElementById("create-cover")?.click()
+                    }
+                    className="flex items-center space-x-2"
+                    disabled={uploadingImage}
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>{createCoverFile ? "Change Cover" : "Select Cover"}</span>
+                  </Button>
+                  {createCoverFile && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearCreateCover}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {createCoverPreview && (
+                  <div className="mt-2">
+                    <img
+                      src={createCoverPreview}
+                      alt="Cover Preview"
+                      className="h-32 w-32 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Or enter a cover image URL manually:
+              </p>
+              <Input
+                id="create-coverImageUrl"
+                type="url"
+                value={createFormData.coverImageUrl}
+                onChange={(e) =>
+                  setCreateFormData((prev) => ({
+                    ...prev,
+                    coverImageUrl: e.target.value,
+                  }))
+                }
+                placeholder="https://example.com/cover.jpg"
+                disabled={!!createCoverFile}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -770,6 +890,64 @@ export default function VendorCategoriesPage() {
                 }
                 placeholder="https://example.com/image.jpg"
                 disabled={!!editImageFile}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-cover">Category Cover Image</Label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  id="edit-cover"
+                  accept="image/*"
+                  onChange={handleEditCoverSelect}
+                  className="hidden"
+                />
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      document.getElementById("edit-cover")?.click()
+                    }
+                    className="flex items-center space-x-2"
+                    disabled={uploadingImage}
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>{editCoverFile ? "Change Cover" : "Select Cover"}</span>
+                  </Button>
+                  {editCoverFile && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearEditCover}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {editCoverPreview && (
+                  <div className="mt-2">
+                    <img
+                      src={editCoverPreview}
+                      alt="Cover Preview"
+                      className="h-32 w-32 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Or enter a cover image URL manually:
+              </p>
+              <Input
+                id="edit-coverImageUrl"
+                type="url"
+                value={editFormData.coverImageUrl}
+                onChange={(e) =>
+                  setEditFormData((prev) => ({ ...prev, coverImageUrl: e.target.value }))
+                }
+                placeholder="https://example.com/cover.jpg"
+                disabled={!!editCoverFile}
               />
             </div>
             <div className="flex items-center space-x-2">

@@ -182,6 +182,15 @@ export const vendorCategoryService = {
       },
     });
   },
+  uploadCoverImage: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("coverImage", file);
+    return api.post<VendorCategory>(`/vendor-categories/${id}/cover-image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 // Product Category Services
@@ -197,6 +206,32 @@ export const productCategoryService = {
     api.patch<ProductCategory>(`/categories/${id}`, data),
   delete: (id: string) => api.delete(`/categories/${id}`),
   toggleStatus: (id: string) => api.put(`/categories/${id}/toggle`),
+  uploadImage: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return api.post<ProductCategory>(
+      `/categories/${id}/image`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+  },
+  uploadCover: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("cover", file);
+    return api.post<ProductCategory>(
+      `/categories/${id}/cover`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+  },
 };
 
 // Analytics Services

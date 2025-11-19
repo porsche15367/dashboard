@@ -58,6 +58,7 @@ export interface VendorCategory {
   name: string;
   description?: string;
   imageUrl?: string;
+  coverImageUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -68,6 +69,8 @@ export interface ProductCategory {
   name: string;
   description?: string;
   icon?: string;
+  imageUrl?: string;
+  coverImageUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -389,12 +392,14 @@ export interface CreateVendorCategoryRequest {
   name: string;
   description?: string;
   imageUrl?: string;
+  coverImageUrl?: string;
 }
 
 export interface UpdateVendorCategoryRequest {
   name?: string;
   description?: string;
   imageUrl?: string;
+  coverImageUrl?: string;
   isActive?: boolean;
 }
 
@@ -402,6 +407,8 @@ export interface CreateProductCategoryRequest {
   name: string;
   description?: string;
   icon?: string;
+  imageUrl?: string;
+  coverImageUrl?: string;
   vendorId: string;
 }
 
@@ -409,6 +416,8 @@ export interface UpdateProductCategoryRequest {
   name?: string;
   description?: string;
   icon?: string;
+  imageUrl?: string;
+  coverImageUrl?: string;
   isActive?: boolean;
 }
 
