@@ -51,13 +51,13 @@ const navigation = [
     ],
   },
   {
-    name: "Vendors",
-    href: "/dashboard/vendors",
+    name: "Sellers",
+    href: "/dashboard/sellers",
     icon: Store,
     children: [
-      { name: "All Vendors", href: "/dashboard/vendors" },
-      { name: "Pending Approval", href: "/dashboard/vendors/pending" },
-      { name: "Approved", href: "/dashboard/vendors/approved" },
+      { name: "All Sellers", href: "/dashboard/sellers" },
+      { name: "Pending Approval", href: "/dashboard/sellers/pending" },
+      { name: "Approved", href: "/dashboard/sellers/approved" },
     ],
   },
   {
@@ -89,10 +89,6 @@ const navigation = [
     name: "Categories",
     href: "/dashboard/categories",
     icon: FolderOpen,
-    children: [
-      { name: "Vendor Categories", href: "/dashboard/categories/vendor" },
-      { name: "Product Categories", href: "/dashboard/categories/product" },
-    ],
   },
 ];
 

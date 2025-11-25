@@ -1,28 +1,25 @@
 import api from "./api";
 import {
   User,
-  Vendor,
+  Seller,
   Admin,
   Product,
   Order,
   Coupon,
-  VendorCategory,
-  ProductCategory,
+  Category,
   AdminAnalytics,
-  VendorAnalytics,
+  SellerAnalytics,
   FeaturedProduct,
   ReorderProductsRequest,
   PaginatedResponse,
-  CreateVendorRequest,
-  UpdateVendorRequest,
+  CreateSellerRequest,
+  UpdateSellerRequest,
   CreateUserRequest,
   UpdateUserRequest,
   CreateCouponRequest,
   UpdateCouponRequest,
-  CreateVendorCategoryRequest,
-  UpdateVendorCategoryRequest,
-  CreateProductCategoryRequest,
-  UpdateProductCategoryRequest,
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
   PopularBanner,
   CreatePopularBannerRequest,
   UpdatePopularBannerRequest,
@@ -57,25 +54,37 @@ export const userService = {
   checkSuspensions: () => api.post("/users/admin/check-suspensions"),
 };
 
-// Vendor Services
-export const vendorService = {
-  getAll: () => api.get<Vendor[]>("/vendors"),
-  getPublic: () => api.get<Vendor[]>("/vendors/public"),
+// Seller Services (formerly Vendor)
+export const sellerService = {
+  getAll: () => api.get<Seller[]>("/sellers"),
+  getPublic: () => api.get<Seller[]>("/sellers/public"),
   getUnapproved: (page = 1, limit = 10) =>
-    api.get<PaginatedResponse<Vendor>>(
-      `/vendors/unapproved?page=${page}&limit=${limit}`
-    ),
-  getById: (id: string) => api.get<Vendor>(`/vendors/${id}`),
+    api
+      .get<any>(`/sellers/unapproved?page=${page}&limit=${limit}`)
+      .then((response) => ({
+        ...response,
+        data: {
+          data: response.data.vendors,
+          pagination: response.data.pagination,
+        },
+      })),
+  getById: (id: string) => api.get<Seller>(`/sellers/${id}`),
   getProducts: (id: string, page = 1, limit = 10) =>
-    api.get<PaginatedResponse<Product>>(
-      `/vendors/${id}/products?page=${page}&limit=${limit}`
-    ),
-  create: (data: CreateVendorRequest) => api.post<Vendor>("/vendors", data),
-  update: (id: string, data: UpdateVendorRequest) =>
-    api.patch<Vendor>(`/vendors/${id}`, data),
-  approve: (id: string) => api.put(`/vendors/${id}/approve`),
-  reject: (id: string) => api.put(`/vendors/${id}/reject`),
-  delete: (id: string) => api.delete(`/vendors/${id}`),
+    api
+      .get<any>(`/sellers/${id}/products?page=${page}&limit=${limit}`)
+      .then((response) => ({
+        ...response,
+        data: {
+          data: response.data.products,
+          pagination: response.data.pagination,
+        },
+      })),
+  create: (data: CreateSellerRequest) => api.post<Seller>("/sellers", data),
+  update: (id: string, data: UpdateSellerRequest) =>
+    api.patch<Seller>(`/sellers/${id}`, data),
+  approve: (id: string) => api.put(`/sellers/${id}/approve`),
+  reject: (id: string) => api.put(`/sellers/${id}/reject`),
+  delete: (id: string) => api.delete(`/sellers/${id}`),
 };
 
 // Product Services
@@ -84,16 +93,16 @@ export const productService = {
     page = 1,
     limit = 10,
     search?: string,
-    category?: string,
-    vendor?: string
+    categoryId?: string,
+    sellerId?: string
   ) => {
     const offset = (page - 1) * limit;
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
       ...(search && { searchTerm: search }),
-      ...(category && { categoryId: category }),
-      ...(vendor && { vendorId: vendor }),
+      ...(categoryId && { categoryId }),
+      ...(sellerId && { sellerId }),
     });
     return api.get(`/products?${params}`).then((response) => {
       const backendData = response.data;
@@ -124,14 +133,20 @@ export const productService = {
 
 // Order Services
 export const orderService = {
-  getAll: (page = 1, limit = 10, status?: string, vendor?: string) => {
+  getAll: (page = 1, limit = 10, status?: string, sellerId?: string) => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
       ...(status && { status }),
-      ...(vendor && { vendor }),
+      ...(sellerId && { sellerId }),
     });
-    return api.get<PaginatedResponse<Order>>(`/orders?${params}`);
+    return api.get<any>(`/orders?${params}`).then((response) => ({
+      ...response,
+      data: {
+        data: response.data.orders,
+        pagination: response.data.pagination,
+      },
+    }));
   },
   getById: (id: string) => api.get<Order>(`/orders/${id}`),
   updateStatus: (id: string, status: string) =>
@@ -142,13 +157,30 @@ export const orderService = {
 
 // Coupon Services
 export const couponService = {
-  getAll: (page = 1, limit = 10, vendor?: string) => {
+  getAll: (page = 1, limit = 10, sellerId?: string) => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...(vendor && { vendor }),
+      ...(sellerId && { sellerId }),
     });
-    return api.get<PaginatedResponse<Coupon>>(`/coupons?${params}`);
+    return api.get<Coupon[]>(`/coupons?${params}`).then((response) => {
+      const allCoupons = response.data;
+      const total = allCoupons.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedCoupons = allCoupons.slice(offset, offset + limit);
+
+      return {
+        ...response,
+        data: {
+          data: paginatedCoupons,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages,
+          },
+        },
+      };
+    });
   },
   getById: (id: string) => api.get<Coupon>(`/coupons/${id}`),
   create: (data: CreateCouponRequest) => api.post<Coupon>("/coupons", data),
@@ -159,57 +191,22 @@ export const couponService = {
   validate: (code: string) => api.post(`/coupons/validate`, { code }),
 };
 
-// Vendor Category Services
-export const vendorCategoryService = {
-  getAll: () => api.get<VendorCategory[]>("/vendor-categories"),
-  getById: (id: string) => api.get<VendorCategory>(`/vendor-categories/${id}`),
-  getByName: (name: string) =>
-    api.get<VendorCategory>(`/vendor-categories/name/${name}`),
-  getVendors: (id: string) =>
-    api.get<Vendor[]>(`/vendor-categories/${id}/vendors`),
-  create: (data: CreateVendorCategoryRequest) =>
-    api.post<VendorCategory>("/vendor-categories", data),
-  update: (id: string, data: UpdateVendorCategoryRequest) =>
-    api.patch<VendorCategory>(`/vendor-categories/${id}`, data),
-  delete: (id: string) => api.delete(`/vendor-categories/${id}`),
-  toggleStatus: (id: string) => api.put(`/vendor-categories/${id}/toggle`),
-  uploadImage: (id: string, file: File) => {
-    const formData = new FormData();
-    formData.append("image", file);
-    return api.post<VendorCategory>(`/vendor-categories/${id}/image`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+// Category Services (Consolidated)
+export const categoryService = {
+  getAll: () => {
+    return api.get<Category[]>("/categories");
   },
-  uploadCoverImage: (id: string, file: File) => {
-    const formData = new FormData();
-    formData.append("coverImage", file);
-    return api.post<VendorCategory>(`/vendor-categories/${id}/cover-image`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-  },
-};
-
-// Product Category Services
-export const productCategoryService = {
-  getAll: (vendorId?: string) => {
-    const params = vendorId ? `?vendorId=${vendorId}` : "";
-    return api.get<ProductCategory[]>(`/categories${params}`);
-  },
-  getById: (id: string) => api.get<ProductCategory>(`/categories/${id}`),
-  create: (data: CreateProductCategoryRequest) =>
-    api.post<ProductCategory>("/categories", data),
-  update: (id: string, data: UpdateProductCategoryRequest) =>
-    api.patch<ProductCategory>(`/categories/${id}`, data),
+  getById: (id: string) => api.get<Category>(`/categories/${id}`),
+  create: (data: CreateCategoryRequest) =>
+    api.post<Category>("/categories", data),
+  update: (id: string, data: UpdateCategoryRequest) =>
+    api.patch<Category>(`/categories/${id}`, data),
   delete: (id: string) => api.delete(`/categories/${id}`),
   toggleStatus: (id: string) => api.put(`/categories/${id}/toggle`),
   uploadImage: (id: string, file: File) => {
     const formData = new FormData();
     formData.append("image", file);
-    return api.post<ProductCategory>(
+    return api.post<Category>(
       `/categories/${id}/image`,
       formData,
       {
@@ -222,7 +219,7 @@ export const productCategoryService = {
   uploadCover: (id: string, file: File) => {
     const formData = new FormData();
     formData.append("cover", file);
-    return api.post<ProductCategory>(
+    return api.post<Category>(
       `/categories/${id}/cover`,
       formData,
       {
@@ -232,24 +229,51 @@ export const productCategoryService = {
       }
     );
   },
+  getProductsByCategory: (id: string, limit?: number, offset?: number) => {
+    const params = new URLSearchParams({
+      ...(limit && { limit: limit.toString() }),
+      ...(offset && { offset: offset.toString() }),
+    });
+    return api.get<{
+      category: Category;
+      products: Product[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`/categories/${id}/products?${params}`);
+  },
+  getSellersByCategory: (id: string) =>
+    api.get<{ category: Category; sellers: Seller[] }>(
+      `/categories/${id}/sellers`
+    ),
 };
 
 // Analytics Services
 export const analyticsService = {
   getAdminAnalytics: () =>
-    api.get<AdminAnalytics>("/admin-analytics/dashboard"),
-  getVendorAnalytics: (vendorId: string) =>
-    api.get<VendorAnalytics>(
-      `/vendor-analytics/dashboard?vendorId=${vendorId}`
+    api.get<any>("/admin-analytics/dashboard").then((response) => {
+      const data = response.data;
+      return {
+        ...response,
+        data: {
+          ...data,
+          sellers: data.vendors,
+          topSellers: data.topVendors,
+        } as AdminAnalytics,
+      };
+    }),
+  getSellerAnalytics: (sellerId: string) =>
+    api.get<SellerAnalytics>(
+      `/seller-analytics/dashboard?sellerId=${sellerId}`
     ),
-  getVendors: () => api.get("/admin-analytics/vendors"),
-  getVendorById: (id: string) => api.get(`/admin-analytics/vendors/${id}`),
+  getSellers: () => api.get("/admin-analytics/vendors"),
+  getSellerById: (id: string) => api.get(`/admin-analytics/sellers/${id}`),
   getGlobalSales: () => api.get("/admin-analytics/global-sales"),
   getMostSoldProducts: () => api.get("/admin-analytics/most-sold-products"),
   getSalesByCategory: () => api.get("/admin-analytics/sales-by-category"),
-  getSalesByVendorCategory: () =>
+  getSalesBySellerCategory: () =>
     api.get("/admin-analytics/sales-by-vendor-category"),
-  getTopVendors: () => api.get("/admin-analytics/top-vendors"),
+  getTopSellers: () => api.get("/admin-analytics/top-vendors"),
   getRecentOrders: () => api.get("/admin-analytics/recent-orders"),
 };
 

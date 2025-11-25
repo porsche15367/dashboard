@@ -76,7 +76,7 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [vendorFilter, setVendorFilter] = useState<string>("all");
+  const [sellerFilter, setSellerFilter] = useState<string>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [goToPage, setGoToPage] = useState("");
 
@@ -86,14 +86,14 @@ export default function OrdersPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["orders", page, statusFilter, vendorFilter],
+    queryKey: ["orders", page, statusFilter, sellerFilter],
     queryFn: () =>
       orderService
         .getAll(
           page,
           10,
           statusFilter === "all" ? undefined : statusFilter,
-          vendorFilter === "all" ? undefined : vendorFilter
+          sellerFilter === "all" ? undefined : sellerFilter
         )
         .then((res) => res.data),
   });
@@ -101,10 +101,10 @@ export default function OrdersPage() {
   const orders = (ordersData as any)?.orders || ordersData?.data || [];
   const pagination = ordersData?.pagination;
 
-  // Get unique vendors for the filter dropdown
-  const uniqueVendors = Array.from(
+  // Get unique sellers for the filter dropdown
+  const uniqueSellers = Array.from(
     new Map(
-      orders.map((order: any) => [order.vendor.id, order.vendor])
+      orders.map((order: any) => [order.seller.id, order.seller])
     ).values()
   );
 
@@ -113,7 +113,7 @@ export default function OrdersPage() {
     (order: any) =>
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.vendor.businessName.toLowerCase().includes(searchTerm.toLowerCase())
+      order.seller.businessName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Apply status filter
@@ -121,16 +121,16 @@ export default function OrdersPage() {
     statusFilter === "all"
       ? searchFilteredOrders
       : searchFilteredOrders.filter(
-          (order: any) => order.status === statusFilter
-        );
+        (order: any) => order.status === statusFilter
+      );
 
-  // Apply vendor filter
+  // Apply seller filter
   const filteredOrders =
-    vendorFilter === "all"
+    sellerFilter === "all"
       ? statusFilteredOrders
       : statusFilteredOrders.filter(
-          (order: any) => order.vendor.id === vendorFilter
-        );
+        (order: any) => order.seller.id === sellerFilter
+      );
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
@@ -205,7 +205,7 @@ export default function OrdersPage() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by order number, customer, or vendor..."
+                  placeholder="Search by order number, customer, or seller..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -300,26 +300,26 @@ export default function OrdersPage() {
               </Select>
             </div>
 
-            {/* Vendor Filter */}
+            {/* Seller Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Vendor</label>
-              <Select value={vendorFilter} onValueChange={setVendorFilter}>
+              <label className="text-sm font-medium">Seller</label>
+              <Select value={sellerFilter} onValueChange={setSellerFilter}>
                 <SelectTrigger>
                   <SelectValue
-                    placeholder="Filter by vendor"
-                    className={vendorFilter !== "all" ? "text-blue-600" : ""}
+                    placeholder="Filter by seller"
+                    className={sellerFilter !== "all" ? "text-blue-600" : ""}
                   />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
-                    All Vendors ({uniqueVendors.length})
+                    All Sellers ({uniqueSellers.length})
                   </SelectItem>
-                  {uniqueVendors.map((vendor: any) => (
-                    <SelectItem key={vendor.id} value={vendor.id}>
-                      {vendor.businessName} (
+                  {uniqueSellers.map((seller: any) => (
+                    <SelectItem key={seller.id} value={seller.id}>
+                      {seller.businessName} (
                       {
                         searchFilteredOrders.filter(
-                          (o: any) => o.vendor.id === vendor.id
+                          (o: any) => o.seller.id === seller.id
                         ).length
                       }
                       )
@@ -343,12 +343,12 @@ export default function OrdersPage() {
                       Status: {statusFilter}
                     </span>
                   )}
-                  {vendorFilter !== "all" && (
+                  {sellerFilter !== "all" && (
                     <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                      Vendor:{" "}
+                      Seller:{" "}
                       {(
-                        uniqueVendors.find(
-                          (v: any) => v.id === vendorFilter
+                        uniqueSellers.find(
+                          (v: any) => v.id === sellerFilter
                         ) as any
                       )?.businessName || "Unknown"}
                     </span>
@@ -374,33 +374,33 @@ export default function OrdersPage() {
                     Clear Status
                   </Button>
                 )}
-                {vendorFilter !== "all" && (
+                {sellerFilter !== "all" && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setVendorFilter("all")}
+                    onClick={() => setSellerFilter("all")}
                     className="h-8"
                   >
-                    Clear Vendor
+                    Clear Seller
                   </Button>
                 )}
                 {(searchTerm ||
                   statusFilter !== "all" ||
-                  vendorFilter !== "all") && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSearchTerm("");
-                      setStatusFilter("all");
-                      setVendorFilter("all");
-                      setPage(1);
-                    }}
-                    className="h-8"
-                  >
-                    Clear All
-                  </Button>
-                )}
+                  sellerFilter !== "all") && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setStatusFilter("all");
+                        setSellerFilter("all");
+                        setPage(1);
+                      }}
+                      className="h-8"
+                    >
+                      Clear All
+                    </Button>
+                  )}
               </div>
             </div>
           </div>
@@ -487,7 +487,7 @@ export default function OrdersPage() {
                 <TableRow>
                   <TableHead>Order</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Vendor</TableHead>
+                  <TableHead>Seller</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Payment</TableHead>
@@ -504,8 +504,8 @@ export default function OrdersPage() {
                         <div className="text-center">
                           <h3 className="text-lg font-medium text-muted-foreground">
                             {searchTerm ||
-                            statusFilter !== "all" ||
-                            vendorFilter !== "all"
+                              statusFilter !== "all" ||
+                              sellerFilter !== "all"
                               ? "No orders match your criteria"
                               : "No orders found"}
                           </h3>
@@ -513,10 +513,10 @@ export default function OrdersPage() {
                             {searchTerm
                               ? `No orders found for "${searchTerm}". Try adjusting your search terms.`
                               : statusFilter !== "all"
-                              ? `No orders found with status "${statusFilter}". Try selecting a different status.`
-                              : vendorFilter !== "all"
-                              ? `No orders found for the selected vendor. Try selecting a different vendor.`
-                              : "Orders will appear here once customers start placing orders."}
+                                ? `No orders found with status "${statusFilter}". Try selecting a different status.`
+                                : sellerFilter !== "all"
+                                  ? `No orders found for the selected seller. Try selecting a different seller.`
+                                  : "Orders will appear here once customers start placing orders."}
                           </p>
                         </div>
                         <div className="flex space-x-2">
@@ -538,31 +538,31 @@ export default function OrdersPage() {
                               Clear Status
                             </Button>
                           )}
-                          {vendorFilter !== "all" && (
+                          {sellerFilter !== "all" && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setVendorFilter("all")}
+                              onClick={() => setSellerFilter("all")}
                             >
-                              Clear Vendor
+                              Clear Seller
                             </Button>
                           )}
                           {(searchTerm ||
                             statusFilter !== "all" ||
-                            vendorFilter !== "all") && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSearchTerm("");
-                                setStatusFilter("all");
-                                setVendorFilter("all");
-                                setPage(1);
-                              }}
-                            >
-                              Clear All
-                            </Button>
-                          )}
+                            sellerFilter !== "all") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSearchTerm("");
+                                  setStatusFilter("all");
+                                  setSellerFilter("all");
+                                  setPage(1);
+                                }}
+                              >
+                                Clear All
+                              </Button>
+                            )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -599,10 +599,10 @@ export default function OrdersPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {order.vendor.businessName}
+                            {order.seller.businessName}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {order.vendor.name}
+                            {order.seller.name}
                           </div>
                         </div>
                       </TableCell>
@@ -622,7 +622,7 @@ export default function OrdersPage() {
                         <Badge
                           className={
                             statusColors[
-                              order.status as keyof typeof statusColors
+                            order.status as keyof typeof statusColors
                             ]
                           }
                         >
@@ -633,7 +633,7 @@ export default function OrdersPage() {
                         <Badge
                           className={
                             paymentStatusColors[
-                              order.paymentStatus as keyof typeof paymentStatusColors
+                            order.paymentStatus as keyof typeof paymentStatusColors
                             ]
                           }
                         >
@@ -709,14 +709,14 @@ export default function OrdersPage() {
                             )}
                             {(order.status === "PENDING" ||
                               order.status === "CONFIRMED") && (
-                              <DropdownMenuItem
-                                onClick={() => handleCancel(order.id)}
-                                disabled={actionLoading === order.id}
-                              >
-                                <AlertCircle className="mr-2 h-4 w-4" />
-                                Cancel Order
-                              </DropdownMenuItem>
-                            )}
+                                <DropdownMenuItem
+                                  onClick={() => handleCancel(order.id)}
+                                  disabled={actionLoading === order.id}
+                                >
+                                  <AlertCircle className="mr-2 h-4 w-4" />
+                                  Cancel Order
+                                </DropdownMenuItem>
+                              )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

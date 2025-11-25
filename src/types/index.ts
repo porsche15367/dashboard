@@ -18,8 +18,8 @@ export interface User {
   lastLogin?: string;
 }
 
-// Vendor Types
-export interface Vendor {
+// Seller Types (formerly Vendor)
+export interface Seller {
   id: string;
   name: string;
   email: string;
@@ -37,7 +37,7 @@ export interface Vendor {
   createdAt: string;
   updatedAt: string;
   lastLogin?: string;
-  vendorCategory: VendorCategory;
+  categories: Category[];
   coupons?: Coupon[];
 }
 
@@ -52,8 +52,8 @@ export interface Admin {
   lastLogin?: string;
 }
 
-// Category Types
-export interface VendorCategory {
+// Category Types (Consolidated)
+export interface Category {
   id: string;
   name: string;
   description?: string;
@@ -62,19 +62,6 @@ export interface VendorCategory {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ProductCategory {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  imageUrl?: string;
-  coverImageUrl?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  vendorId: string;
 }
 
 // Product Types
@@ -98,17 +85,14 @@ export interface Product {
   featuredAt?: string;
   createdAt: string;
   updatedAt: string;
-  vendorId: string;
-  categoryId: string;
-  vendor: {
+  sellerId: string;
+  categories: Array<{
+    category: Category;
+  }>;
+  seller: {
     id: string;
     name: string;
     businessName: string;
-  };
-  category: {
-    id: string;
-    name: string;
-    description?: string;
   };
 }
 
@@ -129,7 +113,7 @@ export interface Order {
   id: string;
   orderNumber: string;
   userId: string;
-  vendorId: string;
+  sellerId: string;
   status: OrderStatus;
   totalAmount: number;
   shippingCost: number;
@@ -157,7 +141,7 @@ export interface Order {
     name: string;
     email: string;
   };
-  vendor: {
+  seller: {
     id: string;
     name: string;
     businessName: string;
@@ -208,8 +192,8 @@ export interface Coupon {
   isActive: boolean;
   createdAt: string;
   expiresAt?: string;
-  vendorId: string;
-  vendor: {
+  sellerId: string;
+  seller: {
     id: string;
     name: string;
     businessName: string;
@@ -217,7 +201,7 @@ export interface Coupon {
 }
 
 // Analytics Types
-export interface VendorAnalytics {
+export interface SellerAnalytics {
   products: Array<{
     id: string;
     name: string;
@@ -248,7 +232,7 @@ export interface VendorAnalytics {
 }
 
 export interface AdminAnalytics {
-  vendors: Array<{
+  sellers: Array<{
     id: string;
     name: string;
     businessName: string;
@@ -267,7 +251,7 @@ export interface AdminAnalytics {
     name: string;
     salesCount: number;
     revenue: number;
-    vendor: {
+    seller: {
       id: string;
       name: string;
       businessName: string;
@@ -278,12 +262,12 @@ export interface AdminAnalytics {
     sales: number;
     revenue: number;
   }>;
-  salesByVendorCategory: Array<{
+  salesBySellerCategory: Array<{
     category: string;
     sales: number;
     revenue: number;
   }>;
-  topVendors: Array<{
+  topSellers: Array<{
     id: string;
     name: string;
     businessName: string;
@@ -299,7 +283,7 @@ export interface AdminAnalytics {
     user: {
       name: string;
     };
-    vendor: {
+    seller: {
       name: string;
       businessName: string;
     };
@@ -336,7 +320,7 @@ export interface LoginResponse {
 }
 
 // Form Types
-export interface CreateVendorRequest {
+export interface CreateSellerRequest {
   name: string;
   email: string;
   password: string;
@@ -346,10 +330,10 @@ export interface CreateVendorRequest {
   businessDescription?: string;
   address?: string;
   taxId?: string;
-  vendorCategoryId: string;
+  categoryIds: string[];
 }
 
-export interface UpdateVendorRequest {
+export interface UpdateSellerRequest {
   name?: string;
   email?: string;
   phone?: string;
@@ -358,7 +342,7 @@ export interface UpdateVendorRequest {
   businessDescription?: string;
   address?: string;
   taxId?: string;
-  vendorCategoryId?: string;
+  categoryIds?: string[];
 }
 
 export interface CreateUserRequest {
@@ -366,6 +350,7 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   phone?: string;
+  coverImageUrl?: string;
 }
 
 export interface UpdateUserRequest {
@@ -378,7 +363,7 @@ export interface CreateCouponRequest {
   code: string;
   percentage: number;
   expiresAt?: string;
-  vendorId: string;
+  sellerId: string;
 }
 
 export interface UpdateCouponRequest {
@@ -388,34 +373,16 @@ export interface UpdateCouponRequest {
   expiresAt?: string;
 }
 
-export interface CreateVendorCategoryRequest {
+export interface CreateCategoryRequest {
   name: string;
   description?: string;
   imageUrl?: string;
   coverImageUrl?: string;
 }
 
-export interface UpdateVendorCategoryRequest {
+export interface UpdateCategoryRequest {
   name?: string;
   description?: string;
-  imageUrl?: string;
-  coverImageUrl?: string;
-  isActive?: boolean;
-}
-
-export interface CreateProductCategoryRequest {
-  name: string;
-  description?: string;
-  icon?: string;
-  imageUrl?: string;
-  coverImageUrl?: string;
-  vendorId: string;
-}
-
-export interface UpdateProductCategoryRequest {
-  name?: string;
-  description?: string;
-  icon?: string;
   imageUrl?: string;
   coverImageUrl?: string;
   isActive?: boolean;

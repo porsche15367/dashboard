@@ -56,14 +56,14 @@ export default function DashboardPage() {
         console.error("Analytics error:", err);
         const errorMessage =
           err &&
-          typeof err === "object" &&
-          "response" in err &&
-          err.response &&
-          typeof err.response === "object" &&
-          "data" in err.response &&
-          err.response.data &&
-          typeof err.response.data === "object" &&
-          "message" in err.response.data
+            typeof err === "object" &&
+            "response" in err &&
+            err.response &&
+            typeof err.response === "object" &&
+            "data" in err.response &&
+            err.response.data &&
+            typeof err.response.data === "object" &&
+            "message" in err.response.data
             ? (err.response.data as { message: string }).message
             : "Failed to fetch analytics";
         setError(errorMessage);
@@ -123,9 +123,9 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      title: "Total Vendors",
-      value: analytics.vendors?.length || 0,
-      description: "Active vendors on platform",
+      title: "Total Sellers",
+      value: analytics.sellers?.length || 0,
+      description: "Active sellers on platform",
       icon: Store,
       trend: "+12%",
     },
@@ -139,11 +139,11 @@ export default function DashboardPage() {
     {
       title: "Total Products",
       value:
-        analytics.vendors?.reduce(
-          (acc, vendor) => acc + (vendor.productCount || 0),
+        analytics.sellers?.reduce(
+          (acc, seller) => acc + (seller.productCount || 0),
           0
         ) || 0,
-      description: "Products listed by vendors",
+      description: "Products listed by sellers",
       icon: Package,
       trend: "+15%",
     },
@@ -229,17 +229,17 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Top Vendors */}
+        {/* Top Sellers */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Vendors</CardTitle>
+            <CardTitle>Top Sellers</CardTitle>
             <CardDescription>
-              Best performing vendors by revenue
+              Best performing sellers by revenue
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={(analytics.topVendors || []).slice(0, 5)}>
+              <BarChart data={(analytics.topSellers || []).slice(0, 5)}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="businessName" />
                 <YAxis />
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                 <div className="space-y-1">
                   <p className="text-sm font-medium">#{order.orderNumber}</p>
                   <p className="text-sm text-muted-foreground">
-                    {order.user?.name} • {order.vendor?.businessName}
+                    {order.user?.name} • {order.seller?.businessName}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -274,8 +274,8 @@ export default function DashboardPage() {
                       order.status === "COMPLETED"
                         ? "default"
                         : order.status === "PENDING"
-                        ? "secondary"
-                        : "outline"
+                          ? "secondary"
+                          : "outline"
                     }
                   >
                     {order.status}

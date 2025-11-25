@@ -53,64 +53,64 @@ import {
   AlertCircle,
   Clock,
 } from "lucide-react";
-import { vendorService } from "@/lib/api-services";
-import { Vendor } from "@/types";
+import { sellerService } from "@/lib/api-services";
+import { Seller } from "@/types";
 
-export default function PendingVendorsPage() {
+export default function PendingSellersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const {
-    data: vendors,
+    data: sellers,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["vendors", "pending"],
-    queryFn: () => vendorService.getAll().then((res) => res.data),
+    queryKey: ["sellers", "pending"],
+    queryFn: () => sellerService.getAll().then((res) => res.data),
   });
 
-  // Filter for pending vendors
-  const pendingVendors = vendors?.filter((vendor) => !vendor.isApproved) || [];
-  const filteredVendors = pendingVendors.filter(
-    (vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.email.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter for pending sellers
+  const pendingSellers = sellers?.filter((seller) => !seller.isApproved) || [];
+  const filteredSellers = pendingSellers.filter(
+    (seller) =>
+      seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seller.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seller.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleApprove = async (vendorId: string) => {
+  const handleApprove = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.approve(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.approve(sellerId);
       refetch();
     } catch (error) {
-      console.error("Failed to approve vendor:", error);
+      console.error("Failed to approve seller:", error);
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleReject = async (vendorId: string) => {
+  const handleReject = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.reject(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.reject(sellerId);
       refetch();
     } catch (error) {
-      console.error("Failed to reject vendor:", error);
+      console.error("Failed to reject seller:", error);
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleDelete = async (vendorId: string) => {
+  const handleDelete = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.delete(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.delete(sellerId);
       refetch();
     } catch (error) {
-      console.error("Failed to delete vendor:", error);
+      console.error("Failed to delete seller:", error);
     } finally {
       setActionLoading(null);
     }
@@ -121,7 +121,7 @@ export default function PendingVendorsPage() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Failed to load pending vendors. Please try again.
+          Failed to load pending sellers. Please try again.
         </AlertDescription>
       </Alert>
     );
@@ -131,9 +131,9 @@ export default function PendingVendorsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pending Vendors</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Pending Sellers</h1>
           <p className="text-muted-foreground">
-            Review and approve vendor applications
+            Review and approve seller applications
           </p>
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function PendingVendorsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search pending vendors..."
+            placeholder="Search pending sellers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -161,7 +161,7 @@ export default function PendingVendorsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingVendors.length}</div>
+            <div className="text-2xl font-bold">{pendingSellers.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -170,25 +170,25 @@ export default function PendingVendorsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {vendors?.filter((v) => v.isApproved).length || 0}
+              {sellers?.filter((v) => v.isApproved).length || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Vendors</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Sellers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{vendors?.length || 0}</div>
+            <div className="text-2xl font-bold">{sellers?.length || 0}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Vendors Table */}
+      {/* Sellers Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Pending Vendors List</CardTitle>
-          <CardDescription>A list of vendors awaiting approval</CardDescription>
+          <CardTitle>Pending Sellers List</CardTitle>
+          <CardDescription>A list of sellers awaiting approval</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -207,55 +207,59 @@ export default function PendingVendorsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Vendor</TableHead>
+                  <TableHead>Seller</TableHead>
                   <TableHead>Business</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Categories</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Applied</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVendors.map((vendor) => (
-                  <TableRow key={vendor.id}>
+                {filteredSellers.map((seller) => (
+                  <TableRow key={seller.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage
-                            src={vendor.avatarUrl}
-                            alt={vendor.name}
+                            src={seller.avatarUrl}
+                            alt={seller.name}
                           />
                           <AvatarFallback>
-                            {vendor.name.charAt(0).toUpperCase()}
+                            {seller.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{vendor.name}</div>
+                          <div className="font-medium">{seller.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {vendor.email}
+                            {seller.email}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{vendor.businessName}</div>
+                        <div className="font-medium">{seller.businessName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {vendor.businessDescription}
+                          {seller.businessDescription}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {vendor.vendorCategory.name}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        {seller.categories?.map((cat) => (
+                          <Badge key={cat.id} variant="outline">
+                            {cat.name}
+                          </Badge>
+                        ))}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">Pending</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {new Date(vendor.createdAt).toLocaleDateString()}
+                        {new Date(seller.createdAt).toLocaleDateString()}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -277,15 +281,15 @@ export default function PendingVendorsPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleApprove(vendor.id)}
-                            disabled={actionLoading === vendor.id}
+                            onClick={() => handleApprove(seller.id)}
+                            disabled={actionLoading === seller.id}
                           >
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Approve
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleReject(vendor.id)}
-                            disabled={actionLoading === vendor.id}
+                            onClick={() => handleReject(seller.id)}
+                            disabled={actionLoading === seller.id}
                           >
                             <XCircle className="mr-2 h-4 w-4" />
                             Reject
@@ -306,14 +310,14 @@ export default function PendingVendorsPage() {
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   This action cannot be undone. This will
-                                  permanently delete the vendor and remove all
+                                  permanently delete the seller and remove all
                                   their data from our servers.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(vendor.id)}
+                                  onClick={() => handleDelete(seller.id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                   Delete

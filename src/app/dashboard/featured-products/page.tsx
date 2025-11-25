@@ -228,7 +228,7 @@ export default function FeaturedProductsPage() {
                     <div>
                       <h3 className="font-medium">{product.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        by {product.vendor.businessName} • ${product.price}
+                        by {product.seller.businessName} • ${product.price}
                       </p>
                     </div>
                   </div>
@@ -317,7 +317,7 @@ export default function FeaturedProductsPage() {
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>by {product.vendor.businessName}</span>
+                        <span>by {product.seller.businessName}</span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />

@@ -53,52 +53,52 @@ import {
   AlertCircle,
   Store,
 } from "lucide-react";
-import { vendorService } from "@/lib/api-services";
-import { Vendor } from "@/types";
+import { sellerService } from "@/lib/api-services";
+import { Seller } from "@/types";
 
-export default function ApprovedVendorsPage() {
+export default function ApprovedSellersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const {
-    data: vendors,
+    data: sellers,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["vendors", "approved"],
-    queryFn: () => vendorService.getAll().then((res) => res.data),
+    queryKey: ["sellers", "approved"],
+    queryFn: () => sellerService.getAll().then((res) => res.data),
   });
 
-  // Filter for approved vendors
-  const approvedVendors = vendors?.filter((vendor) => vendor.isApproved) || [];
-  const filteredVendors = approvedVendors.filter(
-    (vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.email.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter for approved sellers
+  const approvedSellers = sellers?.filter((seller) => seller.isApproved) || [];
+  const filteredSellers = approvedSellers.filter(
+    (seller) =>
+      seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seller.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seller.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleReject = async (vendorId: string) => {
+  const handleReject = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.reject(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.reject(sellerId);
       refetch();
     } catch (error) {
-      console.error("Failed to reject vendor:", error);
+      console.error("Failed to reject seller:", error);
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleDelete = async (vendorId: string) => {
+  const handleDelete = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.delete(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.delete(sellerId);
       refetch();
     } catch (error) {
-      console.error("Failed to delete vendor:", error);
+      console.error("Failed to delete seller:", error);
     } finally {
       setActionLoading(null);
     }
@@ -109,7 +109,7 @@ export default function ApprovedVendorsPage() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Failed to load approved vendors. Please try again.
+          Failed to load approved sellers. Please try again.
         </AlertDescription>
       </Alert>
     );
@@ -120,10 +120,10 @@ export default function ApprovedVendorsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Approved Vendors
+            Approved Sellers
           </h1>
           <p className="text-muted-foreground">
-            Manage approved vendor accounts
+            Manage approved seller accounts
           </p>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function ApprovedVendorsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search approved vendors..."
+            placeholder="Search approved sellers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -146,12 +146,12 @@ export default function ApprovedVendorsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Approved Vendors
+              Approved Sellers
             </CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{approvedVendors.length}</div>
+            <div className="text-2xl font-bold">{approvedSellers.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -160,25 +160,25 @@ export default function ApprovedVendorsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {vendors?.filter((v) => !v.isApproved).length || 0}
+              {sellers?.filter((v) => !v.isApproved).length || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Vendors</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Sellers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{vendors?.length || 0}</div>
+            <div className="text-2xl font-bold">{sellers?.length || 0}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Vendors Table */}
+      {/* Sellers Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Approved Vendors List</CardTitle>
-          <CardDescription>A list of all approved vendors</CardDescription>
+          <CardTitle>Approved Sellers List</CardTitle>
+          <CardDescription>A list of all approved sellers</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -197,9 +197,9 @@ export default function ApprovedVendorsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Vendor</TableHead>
+                  <TableHead>Seller</TableHead>
                   <TableHead>Business</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Categories</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Sales</TableHead>
@@ -207,44 +207,48 @@ export default function ApprovedVendorsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVendors.map((vendor) => (
-                  <TableRow key={vendor.id}>
+                {filteredSellers.map((seller) => (
+                  <TableRow key={seller.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage
-                            src={vendor.avatarUrl}
-                            alt={vendor.name}
+                            src={seller.avatarUrl}
+                            alt={seller.name}
                           />
                           <AvatarFallback>
-                            {vendor.name.charAt(0).toUpperCase()}
+                            {seller.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{vendor.name}</div>
+                          <div className="font-medium">{seller.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {vendor.email}
+                            {seller.email}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{vendor.businessName}</div>
+                        <div className="font-medium">{seller.businessName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {vendor.businessDescription}
+                          {seller.businessDescription}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {vendor.vendorCategory.name}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        {seller.categories?.map((cat) => (
+                          <Badge key={cat.id} variant="outline">
+                            {cat.name}
+                          </Badge>
+                        ))}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col space-y-1">
                         <Badge variant="default">Approved</Badge>
-                        {vendor.isVerified && (
+                        {seller.isVerified && (
                           <Badge variant="outline" className="text-xs">
                             Verified
                           </Badge>
@@ -254,7 +258,7 @@ export default function ApprovedVendorsPage() {
                     <TableCell>
                       <div className="flex items-center">
                         <span className="text-sm font-medium">
-                          {vendor.rating.toFixed(1)}
+                          {seller.rating.toFixed(1)}
                         </span>
                         <span className="text-xs text-muted-foreground ml-1">
                           ⭐
@@ -263,7 +267,7 @@ export default function ApprovedVendorsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm font-medium">
-                        {vendor.totalSales.toLocaleString()}
+                        {seller.totalSales.toLocaleString()}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -285,8 +289,8 @@ export default function ApprovedVendorsPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleReject(vendor.id)}
-                            disabled={actionLoading === vendor.id}
+                            onClick={() => handleReject(seller.id)}
+                            disabled={actionLoading === seller.id}
                           >
                             <XCircle className="mr-2 h-4 w-4" />
                             Reject
@@ -307,14 +311,14 @@ export default function ApprovedVendorsPage() {
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   This action cannot be undone. This will
-                                  permanently delete the vendor and remove all
+                                  permanently delete the seller and remove all
                                   their data from our servers.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(vendor.id)}
+                                  onClick={() => handleDelete(seller.id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                   Delete

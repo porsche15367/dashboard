@@ -263,7 +263,7 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
           <p className="text-muted-foreground">
-            Manage products across all vendors
+            Manage products across all sellers
           </p>
         </div>
       </div>
@@ -364,7 +364,7 @@ export default function ProductsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
-                  <TableHead>Vendor</TableHead>
+                  <TableHead>Seller</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
@@ -403,21 +403,23 @@ export default function ProductsPage() {
                       <div className="flex items-center space-x-2">
                         <Avatar className="h-6 w-6">
                           <AvatarFallback className="text-xs">
-                            {product.vendor.name.charAt(0)}
+                            {product.seller.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="text-sm font-medium">
-                            {product.vendor.name}
+                            {product.seller.name}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {product.vendor.businessName}
+                            {product.seller.businessName}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{product.category.name}</Badge>
+                      <Badge variant="outline">
+                        {product.categories[0]?.category.name || "Uncategorized"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
@@ -702,23 +704,23 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {/* Vendor & Category Information */}
+              {/* Seller & Category Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">
-                    Vendor Information
+                    Seller Information
                   </h3>
                   <div className="space-y-2">
                     <div>
                       <span className="font-medium">Business Name:</span>
                       <p className="text-muted-foreground">
-                        {selectedProduct.vendor?.businessName}
+                        {selectedProduct.seller?.businessName}
                       </p>
                     </div>
                     <div>
-                      <span className="font-medium">Vendor Name:</span>
+                      <span className="font-medium">Seller Name:</span>
                       <p className="text-muted-foreground">
-                        {selectedProduct.vendor?.name}
+                        {selectedProduct.seller?.name}
                       </p>
                     </div>
                   </div>
@@ -732,7 +734,8 @@ export default function ProductsPage() {
                     <div>
                       <span className="font-medium">Category:</span>
                       <p className="text-muted-foreground">
-                        {selectedProduct.category?.name}
+                        {selectedProduct.categories[0]?.category.name ||
+                          "Uncategorized"}
                       </p>
                     </div>
                   </div>
@@ -802,27 +805,42 @@ export default function ProductsPage() {
           </DialogHeader>
 
           {selectedProduct && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editFormData.description}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-name">Product Name</Label>
+                  <Label htmlFor="price">Price</Label>
                   <Input
-                    id="edit-name"
-                    value={editFormData.name}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter product name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-price">Price ($)</Label>
-                  <Input
-                    id="edit-price"
+                    id="price"
                     type="number"
+                    min="0"
                     step="0.01"
                     value={editFormData.price}
                     onChange={(e) =>
@@ -831,33 +849,15 @@ export default function ProductsPage() {
                         price: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    placeholder="0.00"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editFormData.description}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter product description"
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-stock">Stock Quantity</Label>
+                  <Label htmlFor="stock">Stock Quantity</Label>
                   <Input
-                    id="edit-stock"
+                    id="stock"
                     type="number"
+                    min="0"
                     value={editFormData.stockQuantity}
                     onChange={(e) =>
                       setEditFormData((prev) => ({
@@ -865,123 +865,88 @@ export default function ProductsPage() {
                         stockQuantity: parseInt(e.target.value) || 0,
                       }))
                     }
-                    placeholder="0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-delivery">Delivery Time (days)</Label>
-                  <Input
-                    id="edit-delivery"
-                    type="number"
-                    value={editFormData.deliveryTime}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({
-                        ...prev,
-                        deliveryTime: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="0"
                   />
                 </div>
               </div>
 
-              {/* Image Upload Section */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Add New Images</Label>
-                  <div className="flex items-center space-x-2">
+              <div className="space-y-2">
+                <Label htmlFor="deliveryTime">Delivery Time (days)</Label>
+                <Input
+                  id="deliveryTime"
+                  type="number"
+                  min="0"
+                  value={editFormData.deliveryTime}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({
+                      ...prev,
+                      deliveryTime: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Images</Label>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  {/* Current Images */}
+                  {selectedProduct.images.map((image, index) => (
+                    <div
+                      key={`current-${index}`}
+                      className="relative aspect-square rounded-lg overflow-hidden border"
+                    >
+                      <img
+                        src={image}
+                        alt={`Current ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+
+                  {/* New Image Previews */}
+                  {imagePreviewUrls.map((url, index) => (
+                    <div
+                      key={`new-${index}`}
+                      className="relative aspect-square rounded-lg overflow-hidden border group"
+                    >
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  <label className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <span className="text-xs text-muted-foreground">
+                      Upload Image
+                    </span>
                     <input
                       type="file"
-                      id="image-upload"
-                      multiple
                       accept="image/*"
-                      onChange={handleImageSelect}
+                      multiple
                       className="hidden"
+                      onChange={handleImageSelect}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        document.getElementById("image-upload")?.click()
-                      }
-                      className="flex items-center space-x-2"
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span>Select Images</span>
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      {selectedImages.length} image(s) selected
-                    </span>
-                  </div>
+                  </label>
                 </div>
-
-                {/* Current Images */}
-                {selectedProduct.images.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Current Images</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {selectedProduct.images.map((image, index) => (
-                        <div
-                          key={index}
-                          className="relative aspect-square rounded-lg overflow-hidden border"
-                        >
-                          <img
-                            src={image}
-                            alt={`Current ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* New Image Previews */}
-                {imagePreviewUrls.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>New Images (Preview)</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {imagePreviewUrls.map((url, index) => (
-                        <div
-                          key={index}
-                          className="relative aspect-square rounded-lg overflow-hidden border"
-                        >
-                          <img
-                            src={url}
-                            alt={`New ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="absolute top-1 right-1 h-6 w-6 p-0"
-                            onClick={() => removeImage(index)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className="flex justify-end space-x-2">
                 <Button
                   variant="outline"
                   onClick={() => setIsEditModalOpen(false)}
-                  disabled={actionLoading === selectedProduct.id}
                 >
                   Cancel
                 </Button>
-                <Button
-                  onClick={handleSaveEdit}
-                  disabled={actionLoading === selectedProduct.id}
-                >
-                  {actionLoading === selectedProduct.id
-                    ? "Saving..."
-                    : "Save Changes"}
+                <Button onClick={handleSaveEdit} disabled={!!actionLoading}>
+                  {actionLoading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>

@@ -77,10 +77,10 @@ export default function CouponsPage() {
   const filteredCoupons = coupons.filter(
     (coupon) =>
       coupon.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      coupon.vendor.businessName
+      coupon.seller.businessName
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      coupon.vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
+      coupon.seller.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleToggleStatus = async (couponId: string) => {
@@ -129,7 +129,7 @@ export default function CouponsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Coupons</h1>
           <p className="text-muted-foreground">
-            Manage discount coupons across all vendors
+            Manage discount coupons across all sellers
           </p>
         </div>
         <Button>
@@ -222,7 +222,7 @@ export default function CouponsPage() {
                 <TableRow>
                   <TableHead>Code</TableHead>
                   <TableHead>Discount</TableHead>
-                  <TableHead>Vendor</TableHead>
+                  <TableHead>Seller</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Expires</TableHead>
                   <TableHead>Created</TableHead>
@@ -243,10 +243,10 @@ export default function CouponsPage() {
                     <TableCell>
                       <div>
                         <div className="font-medium">
-                          {coupon.vendor.businessName}
+                          {coupon.seller.businessName}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {coupon.vendor.name}
+                          {coupon.seller.name}
                         </div>
                       </div>
                     </TableCell>

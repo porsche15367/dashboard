@@ -108,17 +108,17 @@ export default function AnalyticsPage() {
       trend: "+12%",
     },
     {
-      title: "Active Vendors",
-      value: analytics.vendors?.length || 0,
-      description: "Vendors on platform",
+      title: "Active Sellers",
+      value: analytics.sellers?.length || 0,
+      description: "Sellers on platform",
       icon: Store,
       trend: "+8%",
     },
     {
       title: "Total Products",
       value:
-        analytics.vendors?.reduce(
-          (acc, vendor) => acc + (vendor.productCount || 0),
+        analytics.sellers?.reduce(
+          (acc, seller) => acc + (seller.productCount || 0),
           0
         ) || 0,
       description: "Products listed",
@@ -182,7 +182,7 @@ export default function AnalyticsPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="vendors">Vendors</TabsTrigger>
+          <TabsTrigger value="sellers">Sellers</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
@@ -225,17 +225,17 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            {/* Top Vendors */}
+            {/* Top Sellers */}
             <Card>
               <CardHeader>
-                <CardTitle>Top Vendors</CardTitle>
+                <CardTitle>Top Sellers</CardTitle>
                 <CardDescription>
-                  Best performing vendors by revenue
+                  Best performing sellers by revenue
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={(analytics.topVendors || []).slice(0, 5)}>
+                  <BarChart data={(analytics.topSellers || []).slice(0, 5)}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="businessName" />
                     <YAxis />
@@ -267,7 +267,7 @@ export default function AnalyticsPage() {
                         #{order.orderNumber}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {order.user.name} • {order.vendor.businessName}
+                        {order.user.name} • {order.seller.businessName}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -277,8 +277,8 @@ export default function AnalyticsPage() {
                           order.status === "COMPLETED"
                             ? "default"
                             : order.status === "PENDING"
-                            ? "secondary"
-                            : "outline"
+                              ? "secondary"
+                              : "outline"
                         }
                       >
                         {order.status}
@@ -291,43 +291,43 @@ export default function AnalyticsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="vendors" className="space-y-4">
+        <TabsContent value="sellers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Vendor Performance</CardTitle>
+              <CardTitle>Seller Performance</CardTitle>
               <CardDescription>
-                Detailed vendor analytics and metrics
+                Detailed seller analytics and metrics
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {(analytics.vendors || []).slice(0, 10).map((vendor) => (
+                {(analytics.sellers || []).slice(0, 10).map((seller) => (
                   <div
-                    key={vendor.id}
+                    key={seller.id}
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div className="space-y-1">
-                      <p className="font-medium">{vendor.businessName}</p>
+                      <p className="font-medium">{seller.businessName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {vendor.name}
+                        {seller.name}
                       </p>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          ${(vendor.totalRevenue || 0).toLocaleString()}
+                          ${(seller.totalRevenue || 0).toLocaleString()}
                         </p>
                         <p className="text-xs text-muted-foreground">Revenue</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {vendor.totalSales || 0}
+                          {seller.totalSales || 0}
                         </p>
                         <p className="text-xs text-muted-foreground">Sales</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {vendor.productCount || 0}
+                          {seller.productCount || 0}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Products
@@ -335,7 +335,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {vendor.orderCount || 0}
+                          {seller.orderCount || 0}
                         </p>
                         <p className="text-xs text-muted-foreground">Orders</p>
                       </div>
@@ -367,7 +367,7 @@ export default function AnalyticsPage() {
                       <div className="space-y-1">
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {product.vendor.businessName}
+                          {product.seller.businessName}
                         </p>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -397,14 +397,14 @@ export default function AnalyticsPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Sales by Vendor Category</CardTitle>
+                <CardTitle>Sales by Seller Category</CardTitle>
                 <CardDescription>
-                  Revenue breakdown by vendor category
+                  Revenue breakdown by seller category
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analytics.salesByVendorCategory || []}>
+                  <BarChart data={analytics.salesBySellerCategory || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="category" />
                     <YAxis />

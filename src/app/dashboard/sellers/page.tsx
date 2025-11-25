@@ -61,13 +61,13 @@ import {
   Trash2,
   AlertCircle,
 } from "lucide-react";
-import { vendorService } from "@/lib/api-services";
-import { Vendor } from "@/types";
+import { sellerService } from "@/lib/api-services";
+import { Seller } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
-export default function VendorsPage() {
+export default function SellersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -81,37 +81,37 @@ export default function VendorsPage() {
   const { toast } = useToast();
 
   const {
-    data: vendors,
+    data: sellers,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["vendors"],
-    queryFn: () => vendorService.getAll().then((res) => res.data),
+    queryKey: ["sellers"],
+    queryFn: () => sellerService.getAll().then((res) => res.data),
   });
 
-  const filteredVendors =
-    vendors?.filter(
-      (vendor) =>
-        vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vendor.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vendor.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSellers =
+    sellers?.filter(
+      (seller) =>
+        seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        seller.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        seller.email.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
-  const handleApprove = async (vendorId: string) => {
+  const handleApprove = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.approve(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.approve(sellerId);
       toast({
         title: "Success",
-        description: "Vendor approved successfully",
+        description: "Seller approved successfully",
       });
       refetch();
     } catch (error: unknown) {
-      console.error("Failed to approve vendor:", error);
+      console.error("Failed to approve seller:", error);
       toast({
         title: "Error",
-        description: "Failed to approve vendor. Please try again.",
+        description: "Failed to approve seller. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -119,20 +119,20 @@ export default function VendorsPage() {
     }
   };
 
-  const handleReject = async (vendorId: string) => {
+  const handleReject = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.reject(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.reject(sellerId);
       toast({
         title: "Success",
-        description: "Vendor rejected successfully",
+        description: "Seller rejected successfully",
       });
       refetch();
     } catch (error: unknown) {
-      console.error("Failed to reject vendor:", error);
+      console.error("Failed to reject seller:", error);
       toast({
         title: "Error",
-        description: "Failed to reject vendor. Please try again.",
+        description: "Failed to reject seller. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -140,20 +140,20 @@ export default function VendorsPage() {
     }
   };
 
-  const handleDelete = async (vendorId: string) => {
+  const handleDelete = async (sellerId: string) => {
     try {
-      setActionLoading(vendorId);
-      await vendorService.delete(vendorId);
+      setActionLoading(sellerId);
+      await sellerService.delete(sellerId);
       toast({
         title: "Success",
-        description: "Vendor deleted successfully",
+        description: "Seller deleted successfully",
       });
       refetch();
     } catch (error: unknown) {
-      console.error("Failed to delete vendor:", error);
+      console.error("Failed to delete seller:", error);
       toast({
         title: "Error",
-        description: "Failed to delete vendor. Please try again.",
+        description: "Failed to delete seller. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -161,40 +161,40 @@ export default function VendorsPage() {
     }
   };
 
-  const handleViewVendor = (vendor: Vendor) => {
-    setSelectedVendor(vendor);
+  const handleViewSeller = (seller: Seller) => {
+    setSelectedSeller(seller);
     setIsViewModalOpen(true);
   };
 
-  const handleEditVendor = (vendor: Vendor) => {
-    setSelectedVendor(vendor);
+  const handleEditSeller = (seller: Seller) => {
+    setSelectedSeller(seller);
     setEditFormData({
-      name: vendor.name,
-      businessName: vendor.businessName,
-      businessDescription: vendor.businessDescription || "",
-      address: vendor.address || "",
-      taxId: vendor.taxId || "",
+      name: seller.name,
+      businessName: seller.businessName,
+      businessDescription: seller.businessDescription || "",
+      address: seller.address || "",
+      taxId: seller.taxId || "",
     });
     setIsEditModalOpen(true);
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedVendor) return;
+    if (!selectedSeller) return;
 
     try {
-      setActionLoading(selectedVendor.id);
-      await vendorService.update(selectedVendor.id, editFormData);
+      setActionLoading(selectedSeller.id);
+      await sellerService.update(selectedSeller.id, editFormData);
       toast({
         title: "Success",
-        description: "Vendor updated successfully",
+        description: "Seller updated successfully",
       });
       setIsEditModalOpen(false);
       refetch();
     } catch (error: unknown) {
-      console.error("Failed to update vendor:", error);
+      console.error("Failed to update seller:", error);
       toast({
         title: "Error",
-        description: "Failed to update vendor. Please try again.",
+        description: "Failed to update seller. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -207,7 +207,7 @@ export default function VendorsPage() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Failed to load vendors. Please try again.
+          Failed to load sellers. Please try again.
         </AlertDescription>
       </Alert>
     );
@@ -217,9 +217,9 @@ export default function VendorsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vendors</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Sellers</h1>
           <p className="text-muted-foreground">
-            Manage vendors and their approval status
+            Manage sellers and their approval status
           </p>
         </div>
       </div>
@@ -229,7 +229,7 @@ export default function VendorsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search vendors..."
+            placeholder="Search sellers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -241,10 +241,10 @@ export default function VendorsPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Vendors</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Sellers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{vendors?.length || 0}</div>
+            <div className="text-2xl font-bold">{sellers?.length || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -253,7 +253,7 @@ export default function VendorsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {vendors?.filter((v) => v.isApproved).length || 0}
+              {sellers?.filter((v) => v.isApproved).length || 0}
             </div>
           </CardContent>
         </Card>
@@ -263,18 +263,18 @@ export default function VendorsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {vendors?.filter((v) => !v.isApproved).length || 0}
+              {sellers?.filter((v) => !v.isApproved).length || 0}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Vendors Table */}
+      {/* Sellers Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Vendor List</CardTitle>
+          <CardTitle>Seller List</CardTitle>
           <CardDescription>
-            A list of all vendors in the marketplace
+            A list of all sellers in the marketplace
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -294,9 +294,9 @@ export default function VendorsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Vendor</TableHead>
+                  <TableHead>Seller</TableHead>
                   <TableHead>Business</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Categories</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Sales</TableHead>
@@ -304,48 +304,52 @@ export default function VendorsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVendors.map((vendor) => (
-                  <TableRow key={vendor.id}>
+                {filteredSellers.map((seller) => (
+                  <TableRow key={seller.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage
-                            src={vendor.avatarUrl}
-                            alt={vendor.name}
+                            src={seller.avatarUrl}
+                            alt={seller.name}
                           />
                           <AvatarFallback>
-                            {vendor.name.charAt(0).toUpperCase()}
+                            {seller.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{vendor.name}</div>
+                          <div className="font-medium">{seller.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {vendor.email}
+                            {seller.email}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{vendor.businessName}</div>
+                        <div className="font-medium">{seller.businessName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {vendor.businessDescription}
+                          {seller.businessDescription}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {vendor.vendorCategory.name}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        {seller.categories?.map((cat) => (
+                          <Badge key={cat.id} variant="outline">
+                            {cat.name}
+                          </Badge>
+                        ))}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col space-y-1">
                         <Badge
-                          variant={vendor.isApproved ? "default" : "secondary"}
+                          variant={seller.isApproved ? "default" : "secondary"}
                         >
-                          {vendor.isApproved ? "Approved" : "Pending"}
+                          {seller.isApproved ? "Approved" : "Pending"}
                         </Badge>
-                        {vendor.isVerified && (
+                        {seller.isVerified && (
                           <Badge variant="outline" className="text-xs">
                             Verified
                           </Badge>
@@ -355,7 +359,7 @@ export default function VendorsPage() {
                     <TableCell>
                       <div className="flex items-center">
                         <span className="text-sm font-medium">
-                          {vendor.rating.toFixed(1)}
+                          {seller.rating.toFixed(1)}
                         </span>
                         <span className="text-xs text-muted-foreground ml-1">
                           ⭐
@@ -364,7 +368,7 @@ export default function VendorsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm font-medium">
-                        {vendor.totalSales.toLocaleString()}
+                        {seller.totalSales.toLocaleString()}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -377,30 +381,30 @@ export default function VendorsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem
-                            onClick={() => handleViewVendor(vendor)}
+                            onClick={() => handleViewSeller(seller)}
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleEditVendor(vendor)}
+                            onClick={() => handleEditSeller(seller)}
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          {!vendor.isApproved ? (
+                          {!seller.isApproved ? (
                             <DropdownMenuItem
-                              onClick={() => handleApprove(vendor.id)}
-                              disabled={actionLoading === vendor.id}
+                              onClick={() => handleApprove(seller.id)}
+                              disabled={actionLoading === seller.id}
                             >
                               <CheckCircle className="mr-2 h-4 w-4" />
                               Approve
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem
-                              onClick={() => handleReject(vendor.id)}
-                              disabled={actionLoading === vendor.id}
+                              onClick={() => handleReject(seller.id)}
+                              disabled={actionLoading === seller.id}
                             >
                               <XCircle className="mr-2 h-4 w-4" />
                               Reject
@@ -422,14 +426,14 @@ export default function VendorsPage() {
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   This action cannot be undone. This will
-                                  permanently delete the vendor and remove all
+                                  permanently delete the seller and remove all
                                   their data from our servers.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(vendor.id)}
+                                  onClick={() => handleDelete(seller.id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                   Delete
@@ -448,47 +452,47 @@ export default function VendorsPage() {
         </CardContent>
       </Card>
 
-      {/* Vendor View Modal */}
+      {/* Seller View Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Vendor Details</DialogTitle>
+            <DialogTitle>Seller Details</DialogTitle>
             <DialogDescription>
-              View detailed information about this vendor
+              View detailed information about this seller
             </DialogDescription>
           </DialogHeader>
 
-          {selectedVendor && (
+          {selectedSeller && (
             <div className="space-y-6">
-              {/* Vendor Avatar and Basic Info */}
+              {/* Seller Avatar and Basic Info */}
               <div className="flex items-start space-x-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={selectedVendor.avatarUrl} />
+                  <AvatarImage src={selectedSeller.avatarUrl} />
                   <AvatarFallback className="text-lg">
-                    {selectedVendor.name.charAt(0).toUpperCase()}
+                    {selectedSeller.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
-                  <h3 className="text-2xl font-bold">{selectedVendor.name}</h3>
+                  <h3 className="text-2xl font-bold">{selectedSeller.name}</h3>
                   <p className="text-lg text-muted-foreground">
-                    {selectedVendor.businessName}
+                    {selectedSeller.businessName}
                   </p>
                   <div className="flex items-center space-x-2">
                     <Badge
                       variant={
-                        selectedVendor.isApproved ? "default" : "secondary"
+                        selectedSeller.isApproved ? "default" : "secondary"
                       }
                     >
-                      {selectedVendor.isApproved
+                      {selectedSeller.isApproved
                         ? "Approved"
                         : "Pending Approval"}
                     </Badge>
                     <Badge
                       variant={
-                        selectedVendor.isVerified ? "default" : "outline"
+                        selectedSeller.isVerified ? "default" : "outline"
                       }
                     >
-                      {selectedVendor.isVerified ? "Verified" : "Unverified"}
+                      {selectedSeller.isVerified ? "Verified" : "Unverified"}
                     </Badge>
                   </div>
                 </div>
@@ -504,14 +508,14 @@ export default function VendorsPage() {
                     <div>
                       <span className="font-medium">Email:</span>
                       <p className="text-muted-foreground">
-                        {selectedVendor.email}
+                        {selectedSeller.email}
                       </p>
                     </div>
-                    {selectedVendor.phone && (
+                    {selectedSeller.phone && (
                       <div>
                         <span className="font-medium">Phone:</span>
                         <p className="text-muted-foreground">
-                          {selectedVendor.phone}
+                          {selectedSeller.phone}
                         </p>
                       </div>
                     )}
@@ -526,30 +530,30 @@ export default function VendorsPage() {
                     <div>
                       <span className="font-medium">Business Name:</span>
                       <p className="text-muted-foreground">
-                        {selectedVendor.businessName}
+                        {selectedSeller.businessName}
                       </p>
                     </div>
-                    {selectedVendor.businessDescription && (
+                    {selectedSeller.businessDescription && (
                       <div>
                         <span className="font-medium">Description:</span>
                         <p className="text-muted-foreground">
-                          {selectedVendor.businessDescription}
+                          {selectedSeller.businessDescription}
                         </p>
                       </div>
                     )}
-                    {selectedVendor.address && (
+                    {selectedSeller.address && (
                       <div>
                         <span className="font-medium">Address:</span>
                         <p className="text-muted-foreground">
-                          {selectedVendor.address}
+                          {selectedSeller.address}
                         </p>
                       </div>
                     )}
-                    {selectedVendor.taxId && (
+                    {selectedSeller.taxId && (
                       <div>
                         <span className="font-medium">Tax ID:</span>
                         <p className="text-muted-foreground">
-                          {selectedVendor.taxId}
+                          {selectedSeller.taxId}
                         </p>
                       </div>
                     )}
@@ -565,13 +569,13 @@ export default function VendorsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
-                      {selectedVendor.rating.toFixed(1)}
+                      {selectedSeller.rating.toFixed(1)}
                     </div>
                     <div className="text-sm text-muted-foreground">Rating</div>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {selectedVendor.totalSales}
+                      {selectedSeller.totalSales}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Total Sales
@@ -579,10 +583,10 @@ export default function VendorsPage() {
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-purple-600">
-                      {selectedVendor.vendorCategory?.name || "N/A"}
+                      {selectedSeller.categories?.length || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Category
+                      Categories
                     </div>
                   </div>
                 </div>
@@ -597,20 +601,20 @@ export default function VendorsPage() {
                   <div>
                     <span className="font-medium">Joined:</span>
                     <p className="text-muted-foreground">
-                      {new Date(selectedVendor.createdAt).toLocaleString()}
+                      {new Date(selectedSeller.createdAt).toLocaleString()}
                     </p>
                   </div>
                   <div>
                     <span className="font-medium">Last Updated:</span>
                     <p className="text-muted-foreground">
-                      {new Date(selectedVendor.updatedAt).toLocaleString()}
+                      {new Date(selectedSeller.updatedAt).toLocaleString()}
                     </p>
                   </div>
-                  {selectedVendor.lastLogin && (
+                  {selectedSeller.lastLogin && (
                     <div>
                       <span className="font-medium">Last Login:</span>
                       <p className="text-muted-foreground">
-                        {new Date(selectedVendor.lastLogin).toLocaleString()}
+                        {new Date(selectedSeller.lastLogin).toLocaleString()}
                       </p>
                     </div>
                   )}
@@ -621,19 +625,19 @@ export default function VendorsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Vendor Edit Modal */}
+      {/* Seller Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Vendor</DialogTitle>
-            <DialogDescription>Update the vendor information</DialogDescription>
+            <DialogTitle>Edit Seller</DialogTitle>
+            <DialogDescription>Update the seller information</DialogDescription>
           </DialogHeader>
 
-          {selectedVendor && (
+          {selectedSeller && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-name">Vendor Name</Label>
+                  <Label htmlFor="edit-name">Seller Name</Label>
                   <Input
                     id="edit-name"
                     value={editFormData.name}
@@ -643,7 +647,7 @@ export default function VendorsPage() {
                         name: e.target.value,
                       }))
                     }
-                    placeholder="Enter vendor name"
+                    placeholder="Enter seller name"
                   />
                 </div>
                 <div className="space-y-2">
@@ -713,15 +717,15 @@ export default function VendorsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditModalOpen(false)}
-                  disabled={actionLoading === selectedVendor.id}
+                  disabled={actionLoading === selectedSeller.id}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveEdit}
-                  disabled={actionLoading === selectedVendor.id}
+                  disabled={actionLoading === selectedSeller.id}
                 >
-                  {actionLoading === selectedVendor.id
+                  {actionLoading === selectedSeller.id
                     ? "Saving..."
                     : "Save Changes"}
                 </Button>
