@@ -72,7 +72,7 @@ export default function PendingSellersPage() {
   });
 
   // Filter for pending sellers
-  const pendingSellers = sellers?.filter((seller) => !seller.isApproved) || [];
+  const pendingSellers = sellers?.filter((seller) => seller.status !== 'APPROVED') || [];
   const filteredSellers = pendingSellers.filter(
     (seller) =>
       seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -170,7 +170,7 @@ export default function PendingSellersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sellers?.filter((v) => v.isApproved).length || 0}
+              {sellers?.filter((v) => v.status === 'APPROVED').length || 0}
             </div>
           </CardContent>
         </Card>

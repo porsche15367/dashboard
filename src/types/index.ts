@@ -27,7 +27,7 @@ export interface Seller {
   avatarUrl?: string;
   coverImageUrl?: string;
   isVerified: boolean;
-  isApproved: boolean;
+  status?: 'ONBOARDING_INCOMPLETE' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
   businessName: string;
   businessDescription?: string;
   address?: string;

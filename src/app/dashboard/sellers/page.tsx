@@ -253,7 +253,7 @@ export default function SellersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sellers?.filter((v) => v.isApproved).length || 0}
+              {sellers?.filter((v) => v.status === 'APPROVED').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -263,7 +263,7 @@ export default function SellersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sellers?.filter((v) => !v.isApproved).length || 0}
+              {sellers?.filter((v) => v.status !== 'APPROVED').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -345,9 +345,9 @@ export default function SellersPage() {
                     <TableCell>
                       <div className="flex flex-col space-y-1">
                         <Badge
-                          variant={seller.isApproved ? "default" : "secondary"}
+                          variant={seller.status === 'APPROVED' ? "default" : "secondary"}
                         >
-                          {seller.isApproved ? "Approved" : "Pending"}
+                          {seller.status === 'APPROVED' ? "Approved" : "Pending"}
                         </Badge>
                         {seller.isVerified && (
                           <Badge variant="outline" className="text-xs">
@@ -393,7 +393,7 @@ export default function SellersPage() {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          {!seller.isApproved ? (
+                          {seller.status !== 'APPROVED' ? (
                             <DropdownMenuItem
                               onClick={() => handleApprove(seller.id)}
                               disabled={actionLoading === seller.id}
@@ -480,10 +480,10 @@ export default function SellersPage() {
                   <div className="flex items-center space-x-2">
                     <Badge
                       variant={
-                        selectedSeller.isApproved ? "default" : "secondary"
+                        selectedSeller.status === 'APPROVED' ? "default" : "secondary"
                       }
                     >
-                      {selectedSeller.isApproved
+                      {selectedSeller.status === 'APPROVED'
                         ? "Approved"
                         : "Pending Approval"}
                     </Badge>
