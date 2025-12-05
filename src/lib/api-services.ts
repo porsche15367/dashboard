@@ -246,6 +246,8 @@ export const categoryService = {
     api.get<{ category: Category; sellers: Seller[] }>(
       `/categories/${id}/sellers`
     ),
+  updateOrder: (categoryOrders: Array<{ id: string; order: number }>) =>
+    api.put<Category[]>("/categories/order", categoryOrders),
 };
 
 // Analytics Services

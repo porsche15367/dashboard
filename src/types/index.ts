@@ -60,6 +60,7 @@ export interface Category {
   imageUrl?: string;
   coverImageUrl?: string;
   isActive: boolean;
+  order?: number;
   createdAt: string;
   updatedAt: string;
 }

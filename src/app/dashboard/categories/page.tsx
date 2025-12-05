@@ -64,6 +64,8 @@ import {
     ToggleRight,
     Upload,
     X,
+    ArrowUp,
+    ArrowDown,
 } from "lucide-react";
 import { categoryService } from "@/lib/api-services";
 import {
@@ -119,13 +121,123 @@ export default function CategoriesPage() {
         queryFn: () => categoryService.getAll().then((res) => res.data),
     });
 
+    // Sort categories by order, then by name
+    const sortedCategories = categories
+        ? [...categories].sort((a, b) => {
+            const orderA = a.order ?? 0;
+            const orderB = b.order ?? 0;
+            if (orderA !== orderB) {
+                return orderA - orderB;
+            }
+            return a.name.localeCompare(b.name);
+        })
+        : [];
+
     const filteredCategories =
-        categories?.filter(
+        sortedCategories.filter(
             (category) =>
                 category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (category.description &&
                     category.description.toLowerCase().includes(searchTerm.toLowerCase()))
         ) || [];
+
+    const handleMoveUp = async (categoryId: string) => {
+        if (!categories) return;
+        
+        // Sort categories first
+        const sorted = [...categories].sort((a, b) => {
+            const orderA = a.order ?? 0;
+            const orderB = b.order ?? 0;
+            if (orderA !== orderB) {
+                return orderA - orderB;
+            }
+            return a.name.localeCompare(b.name);
+        });
+        
+        const currentIndex = sorted.findIndex(c => c.id === categoryId);
+        if (currentIndex === 0) return; // Already at top
+        
+        const category = sorted[currentIndex];
+        const previousCategory = sorted[currentIndex - 1];
+        
+        // Swap orders
+        const newOrders = sorted.map((c, idx) => {
+            if (c.id === category.id) {
+                return { id: c.id, order: previousCategory.order ?? currentIndex - 1 };
+            }
+            if (c.id === previousCategory.id) {
+                return { id: c.id, order: category.order ?? currentIndex };
+            }
+            return { id: c.id, order: c.order ?? idx };
+        });
+        
+        setActionLoading(categoryId);
+        try {
+            await categoryService.updateOrder(newOrders);
+            await refetch();
+            toast({
+                title: "Success",
+                description: "Category order updated",
+            });
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to update category order",
+                variant: "destructive",
+            });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleMoveDown = async (categoryId: string) => {
+        if (!categories) return;
+        
+        // Sort categories first
+        const sorted = [...categories].sort((a, b) => {
+            const orderA = a.order ?? 0;
+            const orderB = b.order ?? 0;
+            if (orderA !== orderB) {
+                return orderA - orderB;
+            }
+            return a.name.localeCompare(b.name);
+        });
+        
+        const currentIndex = sorted.findIndex(c => c.id === categoryId);
+        if (currentIndex === sorted.length - 1) return; // Already at bottom
+        
+        const category = sorted[currentIndex];
+        const nextCategory = sorted[currentIndex + 1];
+        
+        // Swap orders
+        const newOrders = sorted.map((c, idx) => {
+            if (c.id === category.id) {
+                return { id: c.id, order: nextCategory.order ?? currentIndex + 1 };
+            }
+            if (c.id === nextCategory.id) {
+                return { id: c.id, order: category.order ?? currentIndex };
+            }
+            return { id: c.id, order: c.order ?? idx };
+        });
+        
+        setActionLoading(categoryId);
+        try {
+            await categoryService.updateOrder(newOrders);
+            await refetch();
+            toast({
+                title: "Success",
+                description: "Category order updated",
+            });
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to update category order",
+                variant: "destructive",
+            });
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     const handleToggleStatus = async (categoryId: string) => {
         try {
@@ -482,6 +594,7 @@ export default function CategoriesPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-12">Order</TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Description</TableHead>
                                     <TableHead>Image</TableHead>
@@ -491,8 +604,30 @@ export default function CategoriesPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredCategories.map((category) => (
+                                {filteredCategories.map((category, index) => (
                                     <TableRow key={category.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 w-7 p-0"
+                                                    onClick={() => handleMoveUp(category.id)}
+                                                    disabled={actionLoading === category.id || index === 0}
+                                                >
+                                                    <ArrowUp className="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 w-7 p-0"
+                                                    onClick={() => handleMoveDown(category.id)}
+                                                    disabled={actionLoading === category.id || index === filteredCategories.length - 1}
+                                                >
+                                                    <ArrowDown className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
                                             <div className="font-medium">{category.name}</div>
                                         </TableCell>
