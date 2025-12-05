@@ -157,19 +157,16 @@ export default function CategoriesPage() {
         const currentIndex = sorted.findIndex(c => c.id === categoryId);
         if (currentIndex === 0) return; // Already at top
         
-        const category = sorted[currentIndex];
-        const previousCategory = sorted[currentIndex - 1];
+        // Swap items in array
+        const newSorted = [...sorted];
+        [newSorted[currentIndex], newSorted[currentIndex - 1]] = 
+            [newSorted[currentIndex - 1], newSorted[currentIndex]];
         
-        // Swap orders
-        const newOrders = sorted.map((c, idx) => {
-            if (c.id === category.id) {
-                return { id: c.id, order: previousCategory.order ?? currentIndex - 1 };
-            }
-            if (c.id === previousCategory.id) {
-                return { id: c.id, order: category.order ?? currentIndex };
-            }
-            return { id: c.id, order: c.order ?? idx };
-        });
+        // Assign sequential orders based on new positions
+        const newOrders = newSorted.map((c, idx) => ({
+            id: c.id,
+            order: idx,
+        }));
         
         setActionLoading(categoryId);
         try {
@@ -206,19 +203,16 @@ export default function CategoriesPage() {
         const currentIndex = sorted.findIndex(c => c.id === categoryId);
         if (currentIndex === sorted.length - 1) return; // Already at bottom
         
-        const category = sorted[currentIndex];
-        const nextCategory = sorted[currentIndex + 1];
+        // Swap items in array
+        const newSorted = [...sorted];
+        [newSorted[currentIndex], newSorted[currentIndex + 1]] = 
+            [newSorted[currentIndex + 1], newSorted[currentIndex]];
         
-        // Swap orders
-        const newOrders = sorted.map((c, idx) => {
-            if (c.id === category.id) {
-                return { id: c.id, order: nextCategory.order ?? currentIndex + 1 };
-            }
-            if (c.id === nextCategory.id) {
-                return { id: c.id, order: category.order ?? currentIndex };
-            }
-            return { id: c.id, order: c.order ?? idx };
-        });
+        // Assign sequential orders based on new positions
+        const newOrders = newSorted.map((c, idx) => ({
+            id: c.id,
+            order: idx,
+        }));
         
         setActionLoading(categoryId);
         try {
